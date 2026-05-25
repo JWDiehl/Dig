@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dig — UX Design Directions</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --canvas: #0a0a0f;
+      --chrome: rgba(20,20,24,0.85);
+      --chrome-border: rgba(255,255,255,0.06);
+      --elevated: #1c1c24;
+      --text-primary: #f0f0f5;
+      --text-secondary: #8888a0;
+      --text-dim: #555568;
+      --data-thin: #c0832a;
+      --color-jazz: #c07828;
+      --color-rock: #b03838;
+      --color-electronic: #7a50c0;
+      --color-hiphop: #3870c0;
+      --color-soul: #c07828;
+      --color-folk: #3a9060;
+    }
+
+    html, body {
+      height: 100%; overflow: hidden;
+      font-family: 'Geist', 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--canvas);
+      color: var(--text-primary);
+    }
+
+    /* ── Switcher bar ── */
+    .switcher {
+      position: fixed; top: 0; left: 0; right: 0; height: 44px;
+      background: rgba(8,8,14,0.98);
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      display: flex; align-items: center;
+      padding: 0 16px; gap: 5px; z-index: 9999;
+    }
+    .switcher-label {
+      font-size: 11px; font-weight: 500; color: var(--text-dim);
+      margin-right: 10px; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap;
+    }
+    .dir-btn {
+      height: 27px; padding: 0 10px;
+      font-size: 11px; font-family: inherit; font-weight: 400;
+      background: transparent; color: var(--text-dim);
+      border: 1px solid rgba(255,255,255,0.08); border-radius: 5px;
+      cursor: pointer; transition: all 0.14s ease; white-space: nowrap;
+    }
+    .dir-btn:hover { color: var(--text-secondary); border-color: rgba(255,255,255,0.15); background: rgba(255,255,255,0.03); }
+    .dir-btn.active { background: rgba(255,255,255,0.07); color: var(--text-primary); border-color: rgba(255,255,255,0.18); }
+
+    /* ── Mockup area ── */
+    .mockup-area { position: fixed; top: 44px; left: 0; right: 0; bottom: 0; }
+    .mockup { display: none; position: absolute; inset: 0; background: var(--canvas); overflow: hidden; }
+    .mockup.active { display: block; }
+
+    /* ── Canvas SVG ── */
+    .graph-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+    /* ── Nav ── */
+    .nav {
+      position: absolute; top: 0; left: 0; right: 0;
+      display: flex; align-items: center; padding: 0 14px; gap: 10px; z-index: 10;
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      background: var(--chrome); border-bottom: 1px solid var(--chrome-border);
+    }
+    .nav-h48 { height: 48px; }
+    .nav-h36 { height: 36px; }
+    .nav-transparent { background: rgba(10,10,15,0.55); border-bottom: none; }
+
+    .search-wrap { flex: 1; position: relative; display: flex; align-items: center; }
+    .search-icon { position: absolute; left: 10px; color: var(--text-dim); pointer-events: none; flex-shrink: 0; }
+    .search-input {
+      width: 100%; height: 32px; padding: 0 12px 0 32px;
+      font-family: inherit; font-size: 14px; color: var(--text-primary);
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 6px; outline: none;
+    }
+    .search-input::placeholder { color: var(--text-dim); }
+    .search-input-sm { height: 26px; font-size: 13px; }
+
+    .filter-btn {
+      width: 32px; height: 32px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 6px; color: var(--text-dim); cursor: pointer; position: relative;
+    }
+    .filter-btn-sm { width: 26px; height: 26px; }
+    .filter-btn.has-dot::after {
+      content: ''; position: absolute; top: 5px; right: 5px;
+      width: 6px; height: 6px; background: var(--data-thin); border-radius: 50%;
+    }
+
+    /* ── Filter panel ── */
+    .filter-panel {
+      position: absolute; top: 48px; left: 0; right: 0;
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      background: rgba(14,14,20,0.92); border-bottom: 1px solid var(--chrome-border);
+      padding: 10px 14px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; z-index: 9;
+    }
+    .filter-section { display: flex; align-items: center; gap: 5px; }
+    .filter-section-label {
+      font-size: 10px; color: var(--text-dim); font-weight: 500;
+      letter-spacing: 0.07em; text-transform: uppercase; white-space: nowrap; margin-right: 2px;
+    }
+    .chip {
+      padding: 3px 10px; font-size: 11px; font-family: inherit;
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 100px; color: var(--text-secondary); cursor: pointer; white-space: nowrap;
+    }
+    .chip.on { background: rgba(192,131,42,0.12); border-color: rgba(192,131,42,0.28); color: var(--data-thin); }
+    .chip-clear {
+      padding: 3px 10px; font-size: 11px; font-family: inherit;
+      background: transparent; border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 100px; color: var(--text-dim); cursor: pointer; margin-left: auto;
+    }
+
+    /* ── Detail panel (desktop right) ── */
+    .detail-panel {
+      position: absolute; top: 60px; right: 14px; width: 256px;
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      background: rgba(28,28,36,0.94); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px; padding: 14px; z-index: 10;
+    }
+    .detail-name { font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 3px; }
+    .detail-meta { font-size: 12px; color: var(--text-secondary); margin-bottom: 12px; }
+    .detail-divider { height: 1px; background: rgba(255,255,255,0.06); margin-bottom: 12px; }
+    .audio-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 10px; background: rgba(255,255,255,0.04); border-radius: 6px;
+    }
+    .play-btn {
+      width: 28px; height: 28px; background: rgba(240,240,245,0.92); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .play-btn svg { fill: var(--canvas); margin-left: 2px; }
+    .audio-label { font-size: 11px; color: var(--text-secondary); }
+    .waveform { display: flex; align-items: center; gap: 2px; margin-left: auto; }
+    .wbar { width: 2px; background: var(--text-dim); border-radius: 1px; }
+
+    /* ── Detail panel (mobile bottom sheet) ── */
+    .detail-sheet {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      background: rgba(28,28,36,0.97); border-top: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px 12px 0 0; padding: 12px 16px 28px; z-index: 10;
+    }
+    .sheet-handle { width: 32px; height: 3px; background: rgba(255,255,255,0.14); border-radius: 2px; margin: 0 auto 12px; }
+    .pivot-hint {
+      margin-top: 10px; padding: 8px 10px;
+      background: rgba(255,255,255,0.04); border-radius: 6px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .pivot-hint-text { font-size: 12px; color: var(--text-secondary); }
+
+    /* ── Mobile frame ── */
+    .mobile-bg { position: absolute; inset: 0; background: #050508; }
+    .mobile-frame {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      width: 375px; height: min(700px, 90%);
+      border: 2px solid rgba(255,255,255,0.1); border-radius: 40px; overflow: hidden;
+      box-shadow: 0 0 0 8px rgba(255,255,255,0.025), 0 40px 80px rgba(0,0,0,0.8);
+      background: var(--canvas);
+    }
+
+    /* ── Direction info label ── */
+    .dir-info {
+      position: absolute; bottom: 14px; left: 14px; z-index: 10; max-width: 340px;
+    }
+    .dir-num { font-size: 10px; font-weight: 500; color: var(--text-dim); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 3px; }
+    .dir-name { font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.4); margin-bottom: 4px; }
+    .dir-desc { font-size: 11px; color: var(--text-dim); line-height: 1.55; }
+
+    /* ── Data-thin badge ── */
+    .data-thin-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 8px; background: rgba(192,131,42,0.1);
+      border: 1px solid rgba(192,131,42,0.22); border-radius: 100px;
+      font-size: 10px; color: var(--data-thin); margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Switcher -->
+<div class="switcher">
+  <span class="switcher-label">Dig · Design Directions</span>
+  <button class="dir-btn active" data-dir="1">D1 · Night Sky</button>
+  <button class="dir-btn" data-dir="2">D2 · Constellation</button>
+  <button class="dir-btn" data-dir="3">D3 · Orbital</button>
+  <button class="dir-btn" data-dir="4">D4 · Minimal Chrome</button>
+  <button class="dir-btn" data-dir="5">D5 · Filter State</button>
+  <button class="dir-btn" data-dir="6">D6 · Mobile</button>
+</div>
+
+<div class="mockup-area">
+
+  <!-- D1: Night Sky (Primary) -->
+  <div class="mockup active" id="mockup-1">
+    <svg class="graph-svg" id="svg-1"></svg>
+    <div class="nav nav-h48">
+      <div class="search-wrap">
+        <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input class="search-input" type="text" placeholder="Search any artist…">
+      </div>
+      <div class="filter-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+      </div>
+    </div>
+    <div class="detail-panel">
+      <div class="detail-name">Charlie Parker</div>
+      <div class="detail-meta">Jazz · 1920–1955 · United States</div>
+      <div class="detail-divider"></div>
+      <div class="audio-row">
+        <div class="play-btn"><svg width="9" height="10" viewBox="0 0 9 10"><polygon points="1,0 9,5 1,10"/></svg></div>
+        <span class="audio-label">Ko-Ko · 0:30 preview</span>
+        <div class="waveform">
+          <div class="wbar" style="height:8px"></div><div class="wbar" style="height:13px"></div>
+          <div class="wbar" style="height:9px"></div><div class="wbar" style="height:16px"></div>
+          <div class="wbar" style="height:7px"></div><div class="wbar" style="height:11px"></div>
+          <div class="wbar" style="height:5px"></div><div class="wbar" style="height:9px"></div>
+        </div>
+      </div>
+    </div>
+    <div class="dir-info">
+      <div class="dir-num">Direction 1</div>
+      <div class="dir-name">Night Sky — Primary Direction</div>
+      <div class="dir-desc">Full-bleed canvas, frosted-glass chrome. Circular nodes with soft color glow. Edges as very thin threads of light (15% opacity). Labels below nodes. Right-side detail panel. Direction labels (← INFLUENCES / INFLUENCED →) faintly visible. This is the established baseline.</div>
+    </div>
+  </div>
+
+  <!-- D2: Constellation -->
+  <div class="mockup" id="mockup-2">
+    <svg class="graph-svg" id="svg-2"></svg>
+    <div class="nav nav-h48">
+      <div class="search-wrap">
+        <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input class="search-input" type="text" placeholder="Search any artist…">
+      </div>
+      <div class="filter-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+      </div>
+    </div>
+    <div class="detail-panel">
+      <div class="detail-name">Charlie Parker</div>
+      <div class="detail-meta">Jazz · 1920–1955 · United States</div>
+      <div class="detail-divider"></div>
+      <div class="audio-row">
+        <div class="play-btn"><svg width="9" height="10" viewBox="0 0 9 10"><polygon points="1,0 9,5 1,10"/></svg></div>
+        <span class="audio-label">Ko-Ko · 0:30 preview</span>
+      </div>
+    </div>
+    <div class="dir-info">
+      <div class="dir-num">Direction 2</div>
+      <div class="dir-name">Constellation</div>
+      <div class="dir-desc">Smaller nodes, more prominent edges (28% opacity, 1px). Emphasis on the connection structure — edges as visible constellation lines. Nodes as smaller, brighter points of light. More "star chart" than "solar system."</div>
+    </div>
+  </div>
+
+  <!-- D3: Orbital Hierarchy -->
+  <div class="mockup" id="mockup-3">
+    <svg class="graph-svg" id="svg-3"></svg>
+    <div class="nav nav-h48">
+      <div class="search-wrap">
+        <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input class="search-input" type="text" placeholder="Search any artist…">
+      </div>
+      <div class="filter-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+      </div>
+    </div>
+    <div class="detail-panel">
+      <div class="detail-name">Charlie Parker</div>
+      <div class="detail-meta">Jazz · 1920–1955 · United States</div>
+      <div class="detail-divider"></div>
+      <div class="audio-row">
+        <div class="play-btn"><svg width="9" height="10" viewBox="0 0 9 10"><polygon points="1,0 9,5 1,10"/></svg></div>
+        <span class="audio-label">Ko-Ko · 0:30 preview</span>
+      </div>
+    </div>
+    <div class="dir-info">
+      <div class="dir-num">Direction 3</div>
+      <div class="dir-name">Orbital Hierarchy</div>
+      <div class="dir-desc">Strong size hierarchy by hop distance: focal artist (xlarge) → 1st hop (medium) → 2nd hop (small). Hop distance is visually unambiguous. The focal artist as gravitational center — closer influences physically larger and more luminous.</div>
+    </div>
+  </div>
+
+  <!-- D4: Minimal Chrome -->
+  <div class="mockup" id="mockup-4">
+    <svg class="graph-svg" id="svg-4"></svg>
+    <div class="nav nav-h36 nav-transparent">
+      <div class="search-wrap">
+        <svg class="search-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="left:8px"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input class="search-input search-input-sm" type="text" placeholder="Search any artist…" style="background:rgba(255,255,255,0.03);border-color:rgba(255,255,255,0.05);padding-left:26px;">
+      </div>
+      <div class="filter-btn filter-btn-sm" style="background:transparent;border-color:rgba(255,255,255,0.05);">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+      </div>
+    </div>
+    <div class="dir-info">
+      <div class="dir-num">Direction 4</div>
+      <div class="dir-name">Minimal Chrome</div>
+      <div class="dir-desc">36px nav, near-transparent background, no border. Chrome almost disappears. Graph occupies the entire visual field — the canvas is unframed. No detail panel shown. Use when you want to maximize immersion and let the data breathe.</div>
+    </div>
+  </div>
+
+  <!-- D5: Filter State -->
+  <div class="mockup" id="mockup-5">
+    <svg class="graph-svg" id="svg-5"></svg>
+    <div class="nav nav-h48">
+      <div class="search-wrap">
+        <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input class="search-input" type="text" placeholder="Search any artist…">
+      </div>
+      <div class="filter-btn has-dot">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+      </div>
+    </div>
+    <div class="filter-panel">
+      <div class="filter-section">
+        <span class="filter-section-label">Era</span>
+        <span class="chip on">1940s — Bebop</span>
+        <span class="chip">1950s — Cool Jazz</span>
+        <span class="chip">1960s — Hard Bop</span>
+        <span class="chip">1970s — Fusion</span>
+        <span class="chip">1980s</span>
+      </div>
+      <div class="filter-section" style="margin-left:16px">
+        <span class="filter-section-label">Genre</span>
+        <span class="chip">Jazz</span>
+        <span class="chip">Soul / Funk</span>
+        <span class="chip">Electronic</span>
+        <span class="chip">Hip-Hop</span>
+      </div>
+      <span class="chip-clear">Clear all</span>
+    </div>
+    <div class="dir-info">
+      <div class="dir-num">Direction 5</div>
+      <div class="dir-name">Filter Panel — Active State</div>
+      <div class="dir-desc">Filter panel expanded. Era chips with epoch labels ("1940s — Bebop"). Active filter highlighted amber. Filter toggle dot indicator visible in nav (never silently hides data). Out-of-range nodes dimmed on canvas.</div>
+    </div>
+  </div>
+
+  <!-- D6: Mobile -->
+  <div class="mockup" id="mockup-6">
+    <div class="mobile-bg"></div>
+    <div class="mobile-frame">
+      <svg class="graph-svg" id="svg-6" style="position:absolute;inset:0;width:100%;height:100%;"></svg>
+      <div class="nav nav-h48" style="border-radius:38px 38px 0 0;">
+        <div class="search-wrap">
+          <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input class="search-input" type="text" placeholder="Search any artist…">
+        </div>
+        <div class="filter-btn" style="width:30px;height:30px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+        </div>
+      </div>
+      <div class="detail-sheet">
+        <div class="sheet-handle"></div>
+        <div class="detail-name">Charlie Parker</div>
+        <div class="detail-meta">Jazz · 1920–1955 · United States</div>
+        <div class="detail-divider"></div>
+        <div class="audio-row">
+          <div class="play-btn"><svg width="9" height="10" viewBox="0 0 9 10"><polygon points="1,0 9,5 1,10"/></svg></div>
+          <span class="audio-label">Ko-Ko · 0:30 preview</span>
+        </div>
+        <div class="pivot-hint">
+          <span class="pivot-hint-text">Tap again to explore Charlie Parker</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--text-dim);flex-shrink:0"><path d="m9 18 6-6-6-6"/></svg>
+        </div>
+      </div>
+    </div>
+    <div class="dir-info" style="bottom:14px;left:50%;transform:translateX(-50%) translateX(210px);max-width:260px;">
+      <div class="dir-num">Direction 6</div>
+      <div class="dir-name">Mobile — 375px</div>
+      <div class="dir-desc">Bottom sheet replaces right panel. First tap → sheet opens with audio + pivot prompt. Pull handle at top. Nav full-width search. Canvas visible above fold even with sheet open.</div>
+    </div>
+  </div>
+
+</div><!-- end mockup-area -->
+
+<script>
+// ── Data ──────────────────────────────────────────────────
+const NODES = [
+  { id:'miles',     name:'Miles Davis',     hop:0, dir:'focal',      genre:'jazz',       x:.50, y:.50 },
+  { id:'parker',    name:'Charlie Parker',  hop:1, dir:'upstream',   genre:'jazz',       x:.28, y:.27 },
+  { id:'monk',      name:'T. Monk',         hop:1, dir:'upstream',   genre:'jazz',       x:.21, y:.44 },
+  { id:'dizzy',     name:'Dizzy Gillespie', hop:1, dir:'upstream',   genre:'jazz',       x:.25, y:.62 },
+  { id:'jamal',     name:'Ahmad Jamal',     hop:1, dir:'upstream',   genre:'jazz',       x:.33, y:.73 },
+  { id:'armstrong', name:'L. Armstrong',    hop:2, dir:'upstream',   genre:'jazz',       x:.10, y:.21 },
+  { id:'hawkins',   name:'C. Hawkins',      hop:2, dir:'upstream',   genre:'jazz',       x:.08, y:.47 },
+  { id:'ellington', name:'Duke Ellington',  hop:2, dir:'upstream',   genre:'jazz',       x:.11, y:.69 },
+  { id:'coltrane',  name:'John Coltrane',   hop:1, dir:'downstream', genre:'jazz',       x:.73, y:.29 },
+  { id:'herbie',    name:'Herbie Hancock',  hop:1, dir:'downstream', genre:'jazz',       x:.76, y:.52 },
+  { id:'santana',   name:'C. Santana',      hop:1, dir:'downstream', genre:'rock',       x:.68, y:.68 },
+  { id:'prince',    name:'Prince',          hop:1, dir:'downstream', genre:'jazz',       x:.79, y:.41 },
+  { id:'flying',    name:'Flying Lotus',    hop:2, dir:'downstream', genre:'electronic', x:.91, y:.26 },
+  { id:'kendrick',  name:'Kendrick Lamar',  hop:2, dir:'downstream', genre:'hiphop',     x:.92, y:.50 },
+  { id:'erykah',    name:'Erykah Badu',     hop:2, dir:'downstream', genre:'soul',       x:.88, y:.67 },
+];
+
+const EDGES = [
+  ['armstrong','parker'],['hawkins','parker'],['ellington','monk'],
+  ['parker','miles'],['monk','miles'],['dizzy','miles'],['jamal','miles'],
+  ['miles','coltrane'],['miles','herbie'],['miles','santana'],['miles','prince'],
+  ['herbie','flying'],['herbie','kendrick'],['prince','erykah'],
+];
+
+const GENRE_COLOR = {
+  jazz:'#c07828', rock:'#b03838', electronic:'#7a50c0', hiphop:'#3870c0', soul:'#c07828',
+};
+
+// ── Direction configs ─────────────────────────────────────
+const CFG = {
+  1:{ fR:36, h1R:20, h2R:13, eOp:.15, eW:.6,  glow:6,  showDirLabels:true,  dimDownstream2:false, mobile:false },
+  2:{ fR:26, h1R:15, h2R:10, eOp:.28, eW:1.0, glow:3,  showDirLabels:false, dimDownstream2:false, mobile:false },
+  3:{ fR:44, h1R:26, h2R:14, eOp:.12, eW:.5,  glow:9,  showDirLabels:false, dimDownstream2:false, mobile:false },
+  4:{ fR:34, h1R:19, h2R:12, eOp:.18, eW:.6,  glow:5,  showDirLabels:false, dimDownstream2:false, mobile:false },
+  5:{ fR:36, h1R:20, h2R:13, eOp:.15, eW:.6,  glow:6,  showDirLabels:false, dimDownstream2:true,  mobile:false, filterOffset:96 },
+  6:{ fR:24, h1R:14, h2R: 9, eOp:.15, eW:.5,  glow:4,  showDirLabels:false, dimDownstream2:false, mobile:true  },
+};
+
+function nodeR(n, cfg) { return n.hop===0 ? cfg.fR : n.hop===1 ? cfg.h1R : cfg.h2R; }
+function nodeColor(n)   { return n.hop===0 ? '#f0f0f5' : (GENRE_COLOR[n.genre]||'#606070'); }
+
+function mkEl(tag) { return document.createElementNS('http://www.w3.org/2000/svg', tag); }
+
+function renderDir(svgId, dirN) {
+  const svg = document.getElementById(svgId);
+  if (!svg) return;
+  const cfg = CFG[dirN];
+
+  // Dimensions
+  const parent = svg.parentElement;
+  const W = parent.clientWidth  || window.innerWidth;
+  const H = parent.clientHeight || (window.innerHeight - 44);
+  if (W < 1 || H < 1) return;
+
+  svg.innerHTML = '';
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+
+  // ── Defs / glow filters ──
+  const defs = mkEl('defs');
+  const genres = ['focal','jazz','rock','electronic','hiphop','soul'];
+  genres.forEach(g => {
+    const color = g==='focal' ? '#f0f0f5' : (GENRE_COLOR[g]||'#606070');
+    const f = mkEl('filter');
+    f.setAttribute('id', `gl-${g}-${dirN}`);
+    f.setAttribute('x','-60%'); f.setAttribute('y','-60%');
+    f.setAttribute('width','220%'); f.setAttribute('height','220%');
+
+    const blur = mkEl('feGaussianBlur');
+    blur.setAttribute('in','SourceGraphic');
+    blur.setAttribute('stdDeviation', String(cfg.glow));
+    blur.setAttribute('result','blur');
+
+    const merge = mkEl('feMerge');
+    const mn1 = mkEl('feMergeNode'); mn1.setAttribute('in','blur');
+    const mn2 = mkEl('feMergeNode'); mn2.setAttribute('in','SourceGraphic');
+    merge.appendChild(mn1); merge.appendChild(mn2);
+
+    f.appendChild(blur); f.appendChild(merge);
+    defs.appendChild(f);
+  });
+  svg.appendChild(defs);
+
+  // ── Compute positions ──
+  const pos = {};
+  const filterY = cfg.filterOffset || 0; // vertical offset for filter panel
+
+  NODES.forEach(n => {
+    let px, py;
+    if (cfg.mobile) {
+      px = (n.x * 0.80 + 0.10) * W;
+      py = (n.y * 0.55 + 0.05) * H;
+    } else if (filterY > 0) {
+      px = n.x * W;
+      py = filterY + (H - filterY) * (n.y * 0.72 + 0.08);
+    } else {
+      px = n.x * W;
+      py = n.y * H;
+    }
+    pos[n.id] = { x: px, y: py };
+  });
+
+  // ── Direction labels (D1 only) ──
+  if (cfg.showDirLabels) {
+    ['← INFLUENCES', 'INFLUENCED →'].forEach((txt, i) => {
+      const t = mkEl('text');
+      t.setAttribute('x', String(i===0 ? W*0.12 : W*0.88));
+      t.setAttribute('y', String(H*0.055 + 48));
+      t.setAttribute('text-anchor','middle');
+      t.setAttribute('fill','rgba(255,255,255,0.11)');
+      t.setAttribute('font-family','Geist,Inter,system-ui,sans-serif');
+      t.setAttribute('font-size','10');
+      t.setAttribute('letter-spacing','0.1em');
+      t.textContent = txt;
+      svg.appendChild(t);
+    });
+  }
+
+  // ── Edges ──
+  const eG = mkEl('g');
+  EDGES.forEach(([a,b]) => {
+    const p1 = pos[a], p2 = pos[b];
+    if (!p1||!p2) return;
+    const nA = NODES.find(n=>n.id===a), nB = NODES.find(n=>n.id===b);
+    const dim = cfg.dimDownstream2 && (nA?.hop===2||nB?.hop===2) && (nA?.dir==='downstream'||nB?.dir==='downstream');
+    const line = mkEl('line');
+    line.setAttribute('x1',String(p1.x)); line.setAttribute('y1',String(p1.y));
+    line.setAttribute('x2',String(p2.x)); line.setAttribute('y2',String(p2.y));
+    line.setAttribute('stroke','white');
+    line.setAttribute('stroke-width',String(cfg.eW));
+    line.setAttribute('stroke-opacity', String(dim ? cfg.eOp*0.25 : cfg.eOp));
+    eG.appendChild(line);
+  });
+  svg.appendChild(eG);
+
+  // ── Nodes ──
+  const nG = mkEl('g');
+  NODES.forEach(n => {
+    const p = pos[n.id];
+    const r = nodeR(n, cfg);
+    const col = nodeColor(n);
+    const isFocal = n.hop===0;
+    const isHovered = n.id==='parker'; // show hover state on Charlie Parker
+    const dim = cfg.dimDownstream2 && n.hop===2 && n.dir==='downstream';
+    const fillOp = dim ? 0.12 : (isFocal ? 0.95 : n.hop===1 ? 0.72 : 0.50);
+    const filterG = isFocal ? 'focal' : (n.genre||'jazz');
+
+    const g = mkEl('g');
+
+    // Glow halo
+    if (!dim) {
+      const halo = mkEl('circle');
+      halo.setAttribute('cx',String(p.x)); halo.setAttribute('cy',String(p.y));
+      halo.setAttribute('r',String(r+4));
+      halo.setAttribute('fill',col);
+      halo.setAttribute('fill-opacity', String(isFocal?0.09:0.055));
+      halo.setAttribute('filter', `url(#gl-${filterG}-${dirN})`);
+      g.appendChild(halo);
+    }
+
+    // Circle
+    const c = mkEl('circle');
+    c.setAttribute('cx',String(p.x)); c.setAttribute('cy',String(p.y));
+    c.setAttribute('r',String(r));
+    c.setAttribute('fill',col);
+    c.setAttribute('fill-opacity',String(fillOp));
+    g.appendChild(c);
+
+    // Hover ring
+    if (isHovered) {
+      const ring = mkEl('circle');
+      ring.setAttribute('cx',String(p.x)); ring.setAttribute('cy',String(p.y));
+      ring.setAttribute('r',String(r+4));
+      ring.setAttribute('fill','none');
+      ring.setAttribute('stroke',col);
+      ring.setAttribute('stroke-width','1.5');
+      ring.setAttribute('stroke-opacity','0.55');
+      g.appendChild(ring);
+    }
+
+    // Label
+    const lSz = isFocal ? (cfg.h1R>15?14:12) : (n.hop===2 ? Math.max(9, (cfg.h2R>10?11:10)) : Math.max(10,(cfg.h1R>15?12:11)));
+    const lY = p.y + r + lSz + 3;
+    const lOp = dim ? 0.18 : (isFocal ? 0.95 : n.hop===1 ? 0.72 : 0.45);
+    const lbl = mkEl('text');
+    lbl.setAttribute('x',String(p.x)); lbl.setAttribute('y',String(lY));
+    lbl.setAttribute('text-anchor','middle');
+    lbl.setAttribute('fill', isFocal ? '#f0f0f5' : '#c8c8d8');
+    lbl.setAttribute('fill-opacity',String(lOp));
+    lbl.setAttribute('font-family','Geist,Inter,system-ui,sans-serif');
+    lbl.setAttribute('font-size',String(lSz));
+    lbl.setAttribute('font-weight', isFocal?'600':'400');
+    lbl.textContent = n.name;
+    g.appendChild(lbl);
+
+    nG.appendChild(g);
+  });
+  svg.appendChild(nG);
+}
+
+// ── Tab switching ──────────────────────────────────────────
+document.querySelectorAll('.dir-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const d = btn.dataset.dir;
+    document.querySelectorAll('.dir-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.mockup').forEach(m=>m.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(`mockup-${d}`).classList.add('active');
+    renderDir(`svg-${d}`, parseInt(d));
+  });
+});
+
+// ── Initial render ─────────────────────────────────────────
+function renderAll() { for(let i=1;i<=6;i++) renderDir(`svg-${i}`,i); }
+window.addEventListener('load', renderAll);
+window.addEventListener('resize', () => setTimeout(renderAll, 50));
+setTimeout(renderAll, 80);
+setTimeout(renderAll, 300); // second pass after fonts load
+</script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+# BMad Workflow Status
+# Project: Dig
+# Updated: 2026-05-25
+
+workflow_status:
+  create-ux-design:
+    status: complete
+    completed_at: "2026-05-25"
+    output: "_bmad-output/planning-artifacts/ux-design-specification.md"
+    assets:
+      - "_bmad-output/planning-artifacts/ux-design-directions.html"
