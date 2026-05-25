@@ -493,56 +493,57 @@ The pivot reframes the experience spatially. Instead of reading about connection
 
 ### Color System
 
-All values are directional — exact hex values are finalized during implementation iteration against the live rendered canvas. Tokens are defined in `tailwind.config.ts` under `theme.extend.colors` as a single source of truth.
+All values are finalized. Tokens are defined in `tailwind.config.ts` under `theme.extend.colors` as a single source of truth. The palette is **warm analog** — brown-black canvas, cream text, earthy genre colors. No cool blue-black; no pure white. The feeling is a well-worn record sleeve, not a screen.
 
 **Surface tokens:**
 
-| Token | Direction | Rationale |
-|-------|-----------|-----------|
-| `canvas` | ~`#0a0a0f` — near black, cool blue-black tint | Not pure black — slight cool tint creates depth, feels like space rather than void |
-| `chrome` | ~`#141418`, 85% opacity | Frosted glass (`backdrop-blur`) over canvas; graph bleeds through chrome |
-| `chrome-border` | White at ~8% opacity | Barely-there boundary; separates chrome from canvas without breaking the dark register |
-| `surface-elevated` | ~`#1c1c24` | Detail panels, dropdowns; legible separation without departing from dark palette |
+| Token | Value | Rationale |
+|-------|-------|-----------|
+| `canvas` | `#1a1814` — warm dark brown-black | Not cold. The slight warm tint reads as analog, not digital void. |
+| `chrome` | `rgba(28,24,20,0.92)` + `backdrop-blur` | Frosted glass over canvas; warm brown tint matches canvas register |
+| `chrome-border` | White Rabbit at ~8% opacity | Barely-there boundary in the warm palette |
+| `surface-elevated` | `rgba(38,34,28,0.96)` | Detail panels, dropdowns; warm separation without departing from dark register |
 
 **Content tokens:**
 
-| Token | Direction |
-|-------|-----------|
-| `text-primary` | White — `#ffffff` or ~`#f0f0f5` |
-| `text-secondary` | Muted gray — ~`#8888a0` |
-| `text-dim` | ~`#555568` — Data-Thin labels, disabled states, empty state copy |
+| Token | Value | Name |
+|-------|-------|------|
+| `text-primary` | `#F3EDDD` | White Rabbit — cream, not pure white; warm and readable |
+| `text-secondary` | `#8a8470` | Muted warm gray |
+| `text-dim` | `#52503f` | Data-Thin labels, disabled states, empty state copy |
 
 **Graph tokens:**
 
-| Token | Direction |
-|-------|-----------|
-| `node-focal` | White / near-white — brightest element on canvas; the star everything else orbits |
-| `node-default` | Genre-family color at ~70% brightness |
-| `node-hover` | Genre-family color at 100% brightness + subtle glow |
-| `node-dimmed` | Genre-family color at ~25% — nodes outside active filter |
-| `edge-default` | White at ~15% opacity — threads of light, not heavy lines |
-| `edge-hover` | White at ~35% opacity — highlighted when adjacent node is hovered |
+| Token | Value |
+|-------|-------|
+| `node-focal` | `#F3EDDD` (White Rabbit) — brightest element on canvas; the star everything else orbits |
+| `node-default` | Genre-family color at ~70% opacity |
+| `node-hover` | Genre-family color at 100% + subtle warm glow |
+| `node-dimmed` | Genre-family color at ~15% opacity — nodes outside active filter |
+| `edge-default` | `#D3CEB8` (Tusk) at **13% opacity** — threads of light, not heavy lines |
+| `edge-hover` | `#D3CEB8` at ~30% opacity — highlighted when adjacent node is hovered |
 
-**Node genre-family color palette:**
+**Node genre-family color palette (finalized):**
 
-| Genre family | Color direction |
-|---|---|
-| Jazz, blues, soul, funk | Warm ambers / oranges |
-| Electronic, ambient, experimental | Cool purples |
-| Folk, world, reggae, afrobeats | Greens |
-| Rock, punk, metal | Reds / pinks |
-| Hip-hop, R&B | Blues |
-| Classical, uncategorized | Grays |
+| Genre family | Hex | Name |
+|---|---|---|
+| Jazz, blues, soul | `#EDC458` | Honey Bee — warm amber gold |
+| Rock, punk, funk | `#E05E37` | Killer Queen — burnt orange-red |
+| Electronic, ambient, experimental | `#9F76B6` | Purple Haze — muted violet |
+| Hip-hop, R&B | `#ABCDBB` | Mr. Blue Sky — desaturated sage-green blue |
+| Folk, world, reggae, afrobeats | `#EDC458` | Honey Bee (shared with Jazz family) |
+| Classical, uncategorized | `#D3CEB8` | Tusk — warm gray, matches edge color |
+| Focal artist node | `#F3EDDD` | White Rabbit — same as text-primary; focal always brightest |
 
 Color encodes genre family as a secondary signal — it reinforces meaning but never carries it alone. Spatial position (left/right for upstream/downstream) is always the primary signal.
 
 **Semantic tokens:**
 
-| Token | Direction |
-|-------|-----------|
-| `data-thin` | Warm amber — signals incompleteness without alarm; informative, not erroneous |
-| `error` | Muted red — reserved for genuine failures only |
-| `focus-ring` | Accent blue — keyboard navigation focus indicator, WCAG 2.1 AA compliant contrast |
+| Token | Value | Usage |
+|-------|-------|-------|
+| `data-thin` | `#EDC458` (Honey Bee) | Warm amber — signals incompleteness without alarm; informative, not erroneous |
+| `error` | Muted red | Reserved for genuine failures only |
+| `focus-ring` | `#F3EDDD` at 50% opacity | Warm cream focus indicator; WCAG 2.1 AA compliant contrast against dark surfaces |
 
 ### Typography System
 
