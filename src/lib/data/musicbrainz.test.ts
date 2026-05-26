@@ -15,8 +15,10 @@ import { searchArtists } from "./musicbrainz";
 import { DataSourceError } from "../errors";
 
 // ─── Integration tests (live API) ────────────────────────────────────────────
+// Skipped automatically when CI=true (set by GitHub Actions).
+// Run locally with: npm run test:run
 
-describe("searchArtists — live MusicBrainz API", () => {
+describe.skipIf(!!process.env.CI)("searchArtists — live MusicBrainz API", () => {
   it(
     'returns results for "radiohead" including Radiohead with a valid MBID',
     async () => {
