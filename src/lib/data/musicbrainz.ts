@@ -18,7 +18,7 @@
  */
 
 import type { Artist } from "./types";
-import { DataSourceError } from "../errors";
+import { ArtistNotFoundError, DataSourceError } from "../errors";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -212,4 +212,48 @@ export async function searchArtists(query: string): Promise<Artist[]> {
   }
 
   return (body.artists ?? []).map(mapArtist);
+}
+
+/**
+ * Looks up a single artist by their MusicBrainz ID.
+ *
+ * Used by graph-builder.ts to fetch focal artist metadata directly.
+ * Unlike searchArtists, this is an exact lookup — not a search.
+ *
+ * @throws {ArtistNotFoundError} when the MBID does not exist (HTTP 404)
+ * @throws {DataSourceError} on network failure, retries exhausted, or non-OK HTTP
+ */
+export async function getArtistByMbid(mbid: string): Promise<Artist> {
+  const url = `${MB_BASE_URL}/artist/${encodeURIComponent(mbid)}?fmt=json&inc=tags`;
+
+  let res: Response;
+  try {
+    res = await fetchWithRetry(url);
+  } catch (err) {
+    if (err instanceof DataSourceError) throw err;
+    throw new DataSourceError(
+      `MusicBrainz lookup failed for MBID "${mbid}": ${String(err)}`,
+    );
+  }
+
+  if (res.status === 404) {
+    throw new ArtistNotFoundError(mbid);
+  }
+
+  if (!res.ok) {
+    throw new DataSourceError(
+      `MusicBrainz returned HTTP ${res.status} for MBID "${mbid}"`,
+    );
+  }
+
+  let body: MbArtist;
+  try {
+    body = (await res.json()) as MbArtist;
+  } catch {
+    throw new DataSourceError(
+      `MusicBrainz returned invalid JSON for MBID "${mbid}"`,
+    );
+  }
+
+  return mapArtist(body);
 }
