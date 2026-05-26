@@ -1,0 +1,44 @@
+{
+  "name": "dig",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "test": "vitest",
+    "test:run": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@radix-ui/react-hover-card": "^1",
+    "@radix-ui/react-popover": "^1",
+    "@radix-ui/react-tooltip": "^1",
+    "@radix-ui/react-visually-hidden": "^1",
+    "@tanstack/react-query": "^5",
+    "cmdk": "^1",
+    "next": "16.2.6",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "zustand": "^5"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@testing-library/react": "^16",
+    "@testing-library/user-event": "^14",
+    "@types/d3": "^7",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^4",
+    "d3": "^7",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.6",
+    "jsdom": "^26",
+    "prettier": "^3",
+    "prettier-plugin-tailwindcss": "^0.6",
+    "tailwindcss": "^4",
+    "typescript": "^5",
+    "vitest": "^3"
+  }
+}
