@@ -175,8 +175,17 @@ export async function buildGraph(
   const cappedDownstream = downstreamNames.slice(0, MAX_INFLUENCES_PER_DIRECTION);
 
   // ── Step 7: Resolve names → Artist objects via MusicBrainz search ───────────
-  const upstreamArtists = await resolveNamesToArtists(cappedUpstream);
-  const downstreamArtists = await resolveNamesToArtists(cappedDownstream);
+  const deadline = Date.now() + GRAPH_BUILD_TIMEOUT_MS;
+  const { artists: upstreamArtists, truncated: upstreamTruncated } =
+    await resolveNamesToArtists(cappedUpstream, deadline);
+  const { artists: downstreamArtists, truncated: downstreamTruncated } =
+    await resolveNamesToArtists(cappedDownstream, deadline);
+
+  if (upstreamTruncated || downstreamTruncated) {
+    warnings.push(
+      "Graph build timed out — influence list may be incomplete (results returned after 8 s)",
+    );
+  }
 
   // ── Step 8: Build confidence-tracking sets ───────────────────────────────────
   const wikiSet = new Set(upstreamNamesWiki.map((n) => n.toLowerCase()));
@@ -240,11 +249,24 @@ export async function buildGraph(
  *
  * Individual lookup failures are swallowed so a single bad name doesn't
  * abort the whole graph build.
+ *
+ * If `deadline` is reached before all batches complete, the loop exits early
+ * and `truncated` is set to `true`. The caller adds a warning to the graph.
  */
-async function resolveNamesToArtists(names: string[]): Promise<Artist[]> {
+async function resolveNamesToArtists(
+  names: string[],
+  deadline: number,
+): Promise<{ artists: Artist[]; truncated: boolean }> {
   const results: Artist[] = [];
+  let truncated = false;
 
   for (let i = 0; i < names.length; i += RESOLVE_BATCH_SIZE) {
+    // Deadline check — bail out before starting the next batch if time is up.
+    if (Date.now() >= deadline) {
+      truncated = true;
+      break;
+    }
+
     const batch = names.slice(i, i + RESOLVE_BATCH_SIZE);
 
     const settled = await Promise.allSettled(
@@ -271,7 +293,7 @@ async function resolveNamesToArtists(names: string[]): Promise<Artist[]> {
     }
   }
 
-  return results;
+  return { artists: results, truncated };
 }
 
 /**
