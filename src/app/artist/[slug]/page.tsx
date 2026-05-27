@@ -9,12 +9,17 @@
  *
  * No "use client" — this intentionally runs as a Server Component so that
  * resolveSlug (which calls the MusicBrainz API) runs at request time on the server.
+ *
+ * ISR: 1 hour — slug→MBID resolution is cached at the edge after the first visit,
+ * matching the graph API route's revalidate window.
  */
 
 import { notFound } from "next/navigation";
 import { resolveSlug } from "@/lib/data/slugs";
 import { ArtistNotFoundError } from "@/lib/errors";
 import { ArtistGraphView } from "./ArtistGraphView";
+
+export const revalidate = 3600;
 
 export default async function ArtistPage({
   params,
