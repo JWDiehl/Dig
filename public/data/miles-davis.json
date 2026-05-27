@@ -1,0 +1,171 @@
+{
+  "focalArtist": {
+    "mbid": "561d854a-6a28-4aa7-8c99-323e6ce46c2a",
+    "slug": "miles-davis",
+    "name": "Miles Davis",
+    "genres": [
+      "jazz",
+      "jazz fusion",
+      "modal jazz",
+      "cool jazz",
+      "hard bop"
+    ],
+    "era": "1920s",
+    "imageUrl": null,
+    "isDataThin": false
+  },
+  "artists": [
+    {
+      "mbid": "561d854a-6a28-4aa7-8c99-323e6ce46c2a",
+      "slug": "miles-davis",
+      "name": "Miles Davis",
+      "genres": [
+        "jazz",
+        "jazz fusion",
+        "modal jazz",
+        "cool jazz",
+        "hard bop"
+      ],
+      "era": "1920s",
+      "imageUrl": null,
+      "isDataThin": false
+    },
+    {
+      "mbid": "56d6a50f-4be2-4796-9709-7eb88c45b63b",
+      "slug": "mark-isham",
+      "name": "Mark Isham",
+      "genres": [
+        "jazz",
+        "electronic",
+        "soundtrack",
+        "composer",
+        "jazz fusion"
+      ],
+      "era": "1950s",
+      "imageUrl": null,
+      "isDataThin": true
+    },
+    {
+      "mbid": "fd180bc2-7b01-4b07-9597-451e7383f1b4",
+      "slug": "george-duke",
+      "name": "George Duke",
+      "genres": [
+        "jazz",
+        "jazz fusion",
+        "jazz-funk",
+        "soul jazz",
+        "smooth jazz"
+      ],
+      "era": "1940s",
+      "imageUrl": null,
+      "isDataThin": true
+    },
+    {
+      "mbid": "17d78170-7194-4603-8dbb-ca1108430882",
+      "slug": "avishai-cohen",
+      "name": "Avishai Cohen",
+      "genres": [
+        "jazz",
+        "post-bop",
+        "jazz and blues"
+      ],
+      "era": "1970s",
+      "imageUrl": null,
+      "isDataThin": true
+    },
+    {
+      "mbid": "525f1f1c-03f0-4bc8-8dfd-e7521f87631b",
+      "slug": "charlie-puth",
+      "name": "Charlie Puth",
+      "genres": [
+        "pop",
+        "contemporary r&b",
+        "soul",
+        "ballad",
+        "dance-pop"
+      ],
+      "era": "1990s",
+      "imageUrl": null,
+      "isDataThin": true
+    },
+    {
+      "mbid": "c97be972-fce8-408b-b668-575f74a3615c",
+      "slug": "alonso-arreola",
+      "name": "Alonso Arreola",
+      "genres": [],
+      "era": "1970s",
+      "imageUrl": null,
+      "isDataThin": true
+    },
+    {
+      "mbid": "07b9fac4-70ee-426a-8b6f-8c47feaa9b71",
+      "slug": "nick-isham",
+      "name": "Nick Isham",
+      "genres": [],
+      "era": null,
+      "imageUrl": null,
+      "isDataThin": true
+    },
+    {
+      "mbid": "d5c51c36-ac67-4727-91ed-ee9f0df81a2d",
+      "slug": "gloria-gaynor",
+      "name": "Gloria Gaynor",
+      "genres": [
+        "disco",
+        "soul",
+        "dance-pop",
+        "pop soul",
+        "philly soul"
+      ],
+      "era": "1940s",
+      "imageUrl": null,
+      "isDataThin": true
+    }
+  ],
+  "edges": [
+    {
+      "sourceId": "561d854a-6a28-4aa7-8c99-323e6ce46c2a",
+      "targetId": "56d6a50f-4be2-4796-9709-7eb88c45b63b",
+      "direction": "downstream",
+      "confidence": "medium"
+    },
+    {
+      "sourceId": "561d854a-6a28-4aa7-8c99-323e6ce46c2a",
+      "targetId": "fd180bc2-7b01-4b07-9597-451e7383f1b4",
+      "direction": "downstream",
+      "confidence": "medium"
+    },
+    {
+      "sourceId": "561d854a-6a28-4aa7-8c99-323e6ce46c2a",
+      "targetId": "17d78170-7194-4603-8dbb-ca1108430882",
+      "direction": "downstream",
+      "confidence": "medium"
+    },
+    {
+      "sourceId": "561d854a-6a28-4aa7-8c99-323e6ce46c2a",
+      "targetId": "525f1f1c-03f0-4bc8-8dfd-e7521f87631b",
+      "direction": "downstream",
+      "confidence": "medium"
+    },
+    {
+      "sourceId": "561d854a-6a28-4aa7-8c99-323e6ce46c2a",
+      "targetId": "c97be972-fce8-408b-b668-575f74a3615c",
+      "direction": "downstream",
+      "confidence": "medium"
+    },
+    {
+      "sourceId": "561d854a-6a28-4aa7-8c99-323e6ce46c2a",
+      "targetId": "07b9fac4-70ee-426a-8b6f-8c47feaa9b71",
+      "direction": "downstream",
+      "confidence": "medium"
+    },
+    {
+      "sourceId": "561d854a-6a28-4aa7-8c99-323e6ce46c2a",
+      "targetId": "d5c51c36-ac67-4727-91ed-ee9f0df81a2d",
+      "direction": "downstream",
+      "confidence": "medium"
+    }
+  ],
+  "depth": 2,
+  "warnings": []
+}

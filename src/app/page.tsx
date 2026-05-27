@@ -1,16 +1,20 @@
 "use client";
 
 /**
- * TEMPORARY TEST PAGE — Story 1.9 smoke test, updated through Story 1.11.
+ * Landing page — Story 1.12.
  *
- * Renders the influence graph with TopNav search bar.
- * Focal artist is driven by Zustand focalArtistId; falls back to Miles Davis
- * on initial load (before any search or pivot).
+ * On initial load (focalArtistId === null):
+ *   - Shows the Miles Davis graph from static public/data/miles-davis.json
+ *   - No API call, no loading state — renders immediately
+ *   - Displays "Follow the thread." subtitle beneath the search bar
  *
- * Replace with the real landing page in Story 1.12.
+ * After search or pivot (focalArtistId set):
+ *   - Switches to live data via useArtistGraph
+ *   - Subtitle disappears; normal loading/error states apply
  */
 
 import { useCallback, useEffect } from "react";
+import milesDataRaw from "@/../public/data/miles-davis.json";
 import { useArtistGraph } from "@/hooks/useArtistGraph";
 import { GraphCanvas } from "@/graph/GraphCanvas";
 import { GraphErrorBoundary } from "@/graph/GraphErrorBoundary";
@@ -18,6 +22,10 @@ import { TopNav } from "@/components/nav/TopNav";
 import { useDigStore } from "@/store";
 import type { Artist, GraphData } from "@/lib/data/types";
 
+// Static landing data — imported at build time, no API call
+const milesData = milesDataRaw as GraphData;
+
+// MBID kept for initial history.replaceState call; no longer used as API argument
 const MILES_DAVIS_MBID = "561d854a-6a28-4aa7-8c99-323e6ce46c2a";
 
 function countByDirection(graphData: GraphData, dir: "upstream" | "downstream") {
@@ -28,10 +36,14 @@ function GraphView() {
   const setFocalArtist = useDigStore((state) => state.setFocalArtist);
   const focalArtistId = useDigStore((state) => state.focalArtistId);
 
-  // Use store focalArtistId when set; fall back to Miles Davis on initial load.
-  const activeMbid = focalArtistId ?? MILES_DAVIS_MBID;
-  const { data, isPending, error } = useArtistGraph(activeMbid);
-  const graphData = data?.data ?? null;
+  // Query is disabled when focalArtistId is null (enabled: !!mbid in the hook).
+  // On landing, no API call fires — milesData serves as the graph immediately.
+  const { data, isPending, error } = useArtistGraph(focalArtistId);
+
+  // Static on landing; live data after any pivot or search
+  const graphData: GraphData | null = focalArtistId
+    ? (data?.data ?? null)
+    : milesData;
 
   // Replace the initial history entry so the Back button works from the first pivot
   useEffect(() => {
@@ -39,7 +51,7 @@ function GraphView() {
   }, []);
 
   // Search selection handler — called by TopNav when user picks a result.
-  // Zustand update → useArtistGraph refetches → D3 updates automatically.
+  // pushState keeps the URL in sync; landing page stays on / until first selection.
   const handleArtistSelect = useCallback(
     (artist: Artist) => {
       setFocalArtist(artist.mbid);
@@ -53,7 +65,7 @@ function GraphView() {
   );
 
   // Pivot handler — fired by D3 node click via GraphCanvas.onPivot.
-  // Separate from handleArtistSelect: artist slug must come from current graphData.
+  // Artist slug comes from current graphData (not from search result).
   const handlePivot = useCallback(
     (mbid: string) => {
       setFocalArtist(mbid);
@@ -67,7 +79,8 @@ function GraphView() {
     [graphData, setFocalArtist],
   );
 
-  if (isPending) {
+  // Loading/error states only apply when a live query is in flight (post-pivot/search)
+  if (focalArtistId && isPending) {
     return (
       <>
         <TopNav onArtistSelect={handleArtistSelect} />
@@ -78,7 +91,7 @@ function GraphView() {
     );
   }
 
-  if (error) {
+  if (focalArtistId && error) {
     return (
       <>
         <TopNav onArtistSelect={handleArtistSelect} />
@@ -92,6 +105,12 @@ function GraphView() {
   return (
     <>
       <TopNav onArtistSelect={handleArtistSelect} />
+      {/* "Follow the thread." subtitle — landing page only */}
+      {!focalArtistId && (
+        <p className="fixed top-12 left-0 right-0 text-center text-[13px] text-[#A09880] pointer-events-none z-40 select-none">
+          Follow the thread.
+        </p>
+      )}
       <GraphCanvas
         graphData={graphData}
         filterEras={[]}
