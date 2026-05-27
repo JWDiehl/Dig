@@ -4,7 +4,7 @@
  * Landing page — Story 1.12.
  *
  * On initial load (focalArtistId === null):
- *   - Shows the Miles Davis graph from static public/data/miles-davis.json
+ *   - Shows the Beatles graph from static public/data/beatles.json
  *   - No API call, no loading state — renders immediately
  *   - Displays "Follow the thread." subtitle beneath the search bar
  *
@@ -14,7 +14,7 @@
  */
 
 import { useCallback, useEffect } from "react";
-import milesDataRaw from "@/../public/data/miles-davis.json";
+import beatlesDataRaw from "@/../public/data/beatles.json";
 import { useArtistGraph } from "@/hooks/useArtistGraph";
 import { GraphCanvas } from "@/graph/GraphCanvas";
 import { GraphErrorBoundary } from "@/graph/GraphErrorBoundary";
@@ -23,10 +23,10 @@ import { useDigStore } from "@/store";
 import type { Artist, GraphData } from "@/lib/data/types";
 
 // Static landing data — imported at build time, no API call
-const milesData = milesDataRaw as GraphData;
+const beatlesData = beatlesDataRaw as GraphData;
 
 // MBID kept for initial history.replaceState call; no longer used as API argument
-const MILES_DAVIS_MBID = "561d854a-6a28-4aa7-8c99-323e6ce46c2a";
+const BEATLES_MBID = "b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d";
 
 function countByDirection(graphData: GraphData, dir: "upstream" | "downstream") {
   return graphData.edges.filter((e) => e.direction === dir).length;
@@ -43,11 +43,11 @@ function GraphView() {
   // Static on landing; live data after any pivot or search
   const graphData: GraphData | null = focalArtistId
     ? (data?.data ?? null)
-    : milesData;
+    : beatlesData;
 
   // Replace the initial history entry so the Back button works from the first pivot
   useEffect(() => {
-    window.history.replaceState({ focalMbid: MILES_DAVIS_MBID }, "");
+    window.history.replaceState({ focalMbid: BEATLES_MBID }, "");
   }, []);
 
   // Search selection handler — called by TopNav when user picks a result.

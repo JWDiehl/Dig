@@ -1,0 +1,326 @@
+{
+  "focalArtist": {
+    "mbid": "b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d",
+    "slug": "the-beatles",
+    "name": "The Beatles",
+    "genres": [
+      "rock",
+      "pop",
+      "pop rock",
+      "british",
+      "psychedelic pop"
+    ],
+    "era": "1960s",
+    "imageUrl": null,
+    "isDataThin": false
+  },
+  "artists": [
+    {
+      "mbid": "b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d",
+      "slug": "the-beatles",
+      "name": "The Beatles",
+      "genres": [
+        "rock",
+        "pop",
+        "pop rock",
+        "british",
+        "psychedelic pop"
+      ],
+      "era": "1960s",
+      "imageUrl": null,
+      "isDataThin": false
+    },
+    {
+      "mbid": "068bd7ab-c38e-4fae-8ed2-cb0c153ed68f",
+      "slug": "carl-perkins",
+      "name": "Carl Perkins",
+      "genres": [
+        "rockabilly",
+        "rock",
+        "country",
+        "american",
+        "singer-songwriter"
+      ],
+      "era": "1930s",
+      "imageUrl": null,
+      "isDataThin": true
+    },
+    {
+      "mbid": "95c2339b-8277-49a6-9aaf-08d8eeeaa0be",
+      "slug": "little-richard",
+      "name": "Little Richard",
+      "genres": [
+        "rock",
+        "rock and roll",
+        "soul",
+        "pop",
+        "funk"
+      ],
+      "era": "1930s",
+      "imageUrl": null,
+      "isDataThin": true
+    },
+    {
+      "mbid": "592a3b6d-c42b-4567-99c9-ecf63bd66499",
+      "slug": "chuck-berry",
+      "name": "Chuck Berry",
+      "genres": [
+        "rock and roll",
+        "rock",
+        "blues",
+        "blues rock",
+        "rhythm & blues"
+      ],
+      "era": "1920s",
+      "imageUrl": null,
+      "isDataThin": true
+    },
+    {
+      "mbid": "f491f5ad-0946-40a6-bab9-da319c3f3995",
+      "slug": "gene-vincent",
+      "name": "Gene Vincent",
+      "genres": [
+        "rock",
+        "rockabilly",
+        "rock and roll"
+      ],
+      "era": "1930s",
+      "imageUrl": null,
+      "isDataThin": true
+    },
+    {
+      "mbid": "33ee7545-047b-4694-a5be-741ea50b8b73",
+      "slug": "starclub",
+      "name": "Starclub",
+      "genres": [],
+      "era": "1990s",
+      "imageUrl": null,
+      "isDataThin": true
+    },
+    {
+      "mbid": "d352f5dd-3023-4565-a7bb-52396bf8821d",
+      "slug": "buddy-holly",
+      "name": "Buddy Holly",
+      "genres": [
+        "rock",
+        "rock and roll",
+        "rockabilly",
+        "server name",
+        "pop"
+      ],
+      "era": "1930s",
+      "imageUrl": null,
+      "isDataThin": true
+    },
+    {
+      "mbid": "17995d1c-5b3c-4ee9-98f5-105ee3b4ada1",
+      "slug": "eddie-cochran",
+      "name": "Eddie Cochran",
+      "genres": [
+        "rockabilly",
+        "rock & roll",
+        "rock",
+        "rhythm & blues",
+        "pop"
+      ],
+      "era": "1930s",
+      "imageUrl": null,
+      "isDataThin": true
+    },
+    {
+      "mbid": "0bbbc496-c7b5-4b3f-bb6d-bd312827d6e5",
+      "slug": "roy-orbison",
+      "name": "Roy Orbison",
+      "genres": [
+        "rockabilly",
+        "pop",
+        "pop rock",
+        "rock and roll",
+        "rock & roll"
+      ],
+      "era": "1930s",
+      "imageUrl": null,
+      "isDataThin": true
+    },
+    {
+      "mbid": "091ec508-877f-4e3c-92a3-10903bbbc7ad",
+      "slug": "the-everly-brothers",
+      "name": "The Everly Brothers",
+      "genres": [
+        "pop",
+        "rockabilly",
+        "rock & roll",
+        "pop rock",
+        "country pop"
+      ],
+      "era": "1950s",
+      "imageUrl": null,
+      "isDataThin": true
+    },
+    {
+      "mbid": "b59ac58d-036e-4bba-8112-c32a34c4575b",
+      "slug": "jerry-lee-lewis",
+      "name": "Jerry Lee Lewis",
+      "genres": [
+        "rockabilly",
+        "rock",
+        "country",
+        "rock and roll",
+        "honky tonk"
+      ],
+      "era": "1930s",
+      "imageUrl": null,
+      "isDataThin": true
+    },
+    {
+      "mbid": "72c536dc-7137-4477-a521-567eeb840fa8",
+      "slug": "bob-dylan",
+      "name": "Bob Dylan",
+      "genres": [
+        "folk rock",
+        "rock",
+        "folk",
+        "blues rock",
+        "singer-songwriter"
+      ],
+      "era": "1940s",
+      "imageUrl": null,
+      "isDataThin": true
+    },
+    {
+      "mbid": "6a4c2d34-7f7f-4f87-b17f-b5540aa840db",
+      "slug": "the-miracles",
+      "name": "The Miracles",
+      "genres": [
+        "soul",
+        "pop",
+        "motown",
+        "pop soul",
+        "r&b"
+      ],
+      "era": "1950s",
+      "imageUrl": null,
+      "isDataThin": true
+    },
+    {
+      "mbid": "9fdaa16b-a6c4-4831-b87c-bc9ca8ce7eaa",
+      "slug": "the-who",
+      "name": "The Who",
+      "genres": [
+        "rock",
+        "hard rock",
+        "classic rock",
+        "mod",
+        "british"
+      ],
+      "era": "1960s",
+      "imageUrl": null,
+      "isDataThin": true
+    },
+    {
+      "mbid": "e20747e7-55a4-452e-8766-7b985585082d",
+      "slug": "frank-zappa",
+      "name": "Frank Zappa",
+      "genres": [
+        "progressive rock",
+        "rock",
+        "art rock",
+        "experimental rock",
+        "jazz fusion"
+      ],
+      "era": "1940s",
+      "imageUrl": null,
+      "isDataThin": true
+    }
+  ],
+  "edges": [
+    {
+      "sourceId": "068bd7ab-c38e-4fae-8ed2-cb0c153ed68f",
+      "targetId": "b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d",
+      "direction": "upstream",
+      "confidence": "medium"
+    },
+    {
+      "sourceId": "95c2339b-8277-49a6-9aaf-08d8eeeaa0be",
+      "targetId": "b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d",
+      "direction": "upstream",
+      "confidence": "high"
+    },
+    {
+      "sourceId": "592a3b6d-c42b-4567-99c9-ecf63bd66499",
+      "targetId": "b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d",
+      "direction": "upstream",
+      "confidence": "high"
+    },
+    {
+      "sourceId": "f491f5ad-0946-40a6-bab9-da319c3f3995",
+      "targetId": "b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d",
+      "direction": "upstream",
+      "confidence": "medium"
+    },
+    {
+      "sourceId": "33ee7545-047b-4694-a5be-741ea50b8b73",
+      "targetId": "b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d",
+      "direction": "upstream",
+      "confidence": "medium"
+    },
+    {
+      "sourceId": "d352f5dd-3023-4565-a7bb-52396bf8821d",
+      "targetId": "b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d",
+      "direction": "upstream",
+      "confidence": "high"
+    },
+    {
+      "sourceId": "17995d1c-5b3c-4ee9-98f5-105ee3b4ada1",
+      "targetId": "b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d",
+      "direction": "upstream",
+      "confidence": "medium"
+    },
+    {
+      "sourceId": "0bbbc496-c7b5-4b3f-bb6d-bd312827d6e5",
+      "targetId": "b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d",
+      "direction": "upstream",
+      "confidence": "medium"
+    },
+    {
+      "sourceId": "091ec508-877f-4e3c-92a3-10903bbbc7ad",
+      "targetId": "b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d",
+      "direction": "upstream",
+      "confidence": "medium"
+    },
+    {
+      "sourceId": "b59ac58d-036e-4bba-8112-c32a34c4575b",
+      "targetId": "b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d",
+      "direction": "upstream",
+      "confidence": "medium"
+    },
+    {
+      "sourceId": "72c536dc-7137-4477-a521-567eeb840fa8",
+      "targetId": "b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d",
+      "direction": "upstream",
+      "confidence": "high"
+    },
+    {
+      "sourceId": "6a4c2d34-7f7f-4f87-b17f-b5540aa840db",
+      "targetId": "b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d",
+      "direction": "upstream",
+      "confidence": "medium"
+    },
+    {
+      "sourceId": "9fdaa16b-a6c4-4831-b87c-bc9ca8ce7eaa",
+      "targetId": "b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d",
+      "direction": "upstream",
+      "confidence": "medium"
+    },
+    {
+      "sourceId": "e20747e7-55a4-452e-8766-7b985585082d",
+      "targetId": "b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d",
+      "direction": "upstream",
+      "confidence": "medium"
+    }
+  ],
+  "depth": 2,
+  "warnings": [
+    "Graph build timed out — influence list may be incomplete (results returned after 8 s)"
+  ]
+}
