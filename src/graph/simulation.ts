@@ -19,7 +19,12 @@ import { renderEdges, updateEdgePositions } from "./edges";
 import { initializeZoom, handleResize, cleanupZoom } from "./zoom";
 import { beginPivotVisuals } from "./pivot";
 import { prefersReducedMotion } from "@/lib/motion";
-import { SIMULATION_ALPHA_DECAY } from "@/graph/constants";
+import {
+  SIMULATION_ALPHA_DECAY,
+  NODE_RADIUS_FOCAL,
+  NODE_RADIUS_HOP1,
+  NODE_RADIUS_HOP2,
+} from "@/graph/constants";
 
 // ─── Module-level mutable state ───────────────────────────────────────────────
 // D3 simulation state lives here — NOT in React state or Zustand.
@@ -304,27 +309,27 @@ export function initializeGraph(
       d3
         .forceLink<GraphNode, GraphLink>(links)
         .id((d) => d.mbid)
-        .distance(80),
+        .distance(150),
     )
-    .force("charge", d3.forceManyBody<GraphNode>().strength(-120))
-    .force("center", d3.forceCenter(width / 2, height / 2).strength(0.8))
+    .force("charge", d3.forceManyBody<GraphNode>().strength(-600))
+    .force("center", d3.forceCenter(width / 2, height / 2).strength(0.05))
     .force(
       "x",
       d3
         .forceX<GraphNode>((d) => {
-          if (d.direction === "upstream") return width * 0.25;
-          if (d.direction === "downstream") return width * 0.75;
+          if (d.direction === "upstream") return width * 0.2;
+          if (d.direction === "downstream") return width * 0.8;
           return width / 2; // focal stays centered
         })
-        .strength(0.3),
+        .strength(0.5),
     )
     .force(
       "collision",
       d3.forceCollide<GraphNode>((d) => {
         const isHop1 = cachedHop1Mbids.has(d.mbid);
-        if (d.direction === "focal") return 28;
-        if (isHop1) return 20;
-        return 15;
+        if (d.direction === "focal") return NODE_RADIUS_FOCAL + 25;
+        if (isHop1) return NODE_RADIUS_HOP1 + 25;
+        return NODE_RADIUS_HOP2 + 25;
       }),
     )
     .alphaDecay(SIMULATION_ALPHA_DECAY)
