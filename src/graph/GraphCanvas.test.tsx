@@ -12,7 +12,7 @@
  */
 
 import React from "react";
-import { render, act } from "@testing-library/react";
+import { render, act, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { GraphCanvas } from "./GraphCanvas";
 import type { GraphData } from "@/lib/data/types";
@@ -258,5 +258,75 @@ describe("genreColor", () => {
   it("uses first matching genre in a mixed array", () => {
     // hip-hop checked before jazz — should return Mr. Blue Sky
     expect(genreColor(["hip-hop", "jazz"])).toBe("#ABCDBB");
+  });
+});
+
+// ─── Story 1.10: Zoom + Pivot interaction tests ───────────────────────────────
+
+describe("GraphCanvas — zoom and pivot (Story 1.10)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("renders a zoom-group element inside the SVG", async () => {
+    const { container } = render(<GraphCanvas {...defaultProps} />);
+    await act(async () => {});
+
+    const zoomGroup = container.querySelector("svg g.zoom-group");
+    expect(zoomGroup).not.toBeNull();
+  });
+
+  it("edges and nodes groups are children of zoom-group, not direct SVG children", async () => {
+    const { container } = render(<GraphCanvas {...defaultProps} />);
+    await act(async () => {});
+
+    const zoomGroup = container.querySelector("g.zoom-group");
+    expect(zoomGroup?.querySelector("g.edges")).not.toBeNull();
+    expect(zoomGroup?.querySelector("g.nodes")).not.toBeNull();
+
+    // edges/nodes must NOT be direct children of <svg>
+    const svg = container.querySelector("svg");
+    const directChildren = Array.from(svg?.children ?? []);
+    const hasDirectEdges = directChildren.some((c) => c.classList.contains("edges"));
+    const hasDirectNodes = directChildren.some((c) => c.classList.contains("nodes"));
+    expect(hasDirectEdges).toBe(false);
+    expect(hasDirectNodes).toBe(false);
+  });
+
+  it("clicking a non-focal node fires onPivot with the correct MBID", async () => {
+    const onPivotMock = vi.fn();
+    const { container } = render(<GraphCanvas {...defaultProps} onPivot={onPivotMock} />);
+    await act(async () => {});
+
+    const upstreamNode = container.querySelector('[aria-label="Chuck Berry, upstream influence"]');
+    expect(upstreamNode).not.toBeNull();
+    fireEvent.click(upstreamNode!);
+    expect(onPivotMock).toHaveBeenCalledWith("upstream-1");
+  });
+
+  it("clicking the focal node does NOT fire onPivot", async () => {
+    const onPivotMock = vi.fn();
+    const { container } = render(<GraphCanvas {...defaultProps} onPivot={onPivotMock} />);
+    await act(async () => {});
+
+    // Use exact match to target the focal <g role="button"> node, not the SVG aria-label
+    const focalNode = container.querySelector('[aria-label="The Beatles, focal influence"]');
+    expect(focalNode).not.toBeNull();
+    fireEvent.click(focalNode!);
+    expect(onPivotMock).not.toHaveBeenCalled();
+  });
+
+  it("fires onPivot with upstream artist MBID when upstream node is clicked", async () => {
+    const onPivotMock = vi.fn();
+    const { container } = render(<GraphCanvas {...defaultProps} onPivot={onPivotMock} />);
+    await act(async () => {});
+
+    const upstreamNode = container.querySelector(
+      '[aria-label="Chuck Berry, upstream influence"]',
+    );
+    expect(upstreamNode).not.toBeNull();
+    fireEvent.click(upstreamNode!);
+    expect(onPivotMock).toHaveBeenCalledWith("upstream-1");
+    expect(onPivotMock).toHaveBeenCalledTimes(1);
   });
 });

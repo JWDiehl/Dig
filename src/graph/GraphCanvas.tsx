@@ -79,6 +79,16 @@ export function GraphCanvas({
     applyFilters({ eras: filterEras, genres: filterGenres });
   }, [filterEras, filterGenres]);
 
+  // ── Effect 4: Back button — popstate restores previous focal artist ───────
+  useEffect(() => {
+    const handlePopState = (e: PopStateEvent) => {
+      const mbid = (e.state as { focalMbid?: string } | null)?.focalMbid;
+      if (mbid) onPivot(mbid);
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [onPivot]);
+
   // ── Aria label ────────────────────────────────────────────────────────────
   const ariaLabel = focalArtistName
     ? `Influence graph centered on ${focalArtistName}. ${upstreamCount} influences, ${downstreamCount} influenced artists.`

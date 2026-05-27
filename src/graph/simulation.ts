@@ -16,6 +16,8 @@ import type { GraphData, InfluenceEdge } from "@/lib/data/types";
 import type { GraphNode, GraphLink } from "@/graph/types";
 import { renderNodes, updateNodePositions } from "./nodes";
 import { renderEdges, updateEdgePositions } from "./edges";
+import { initializeZoom, handleResize, cleanupZoom } from "./zoom";
+import { beginPivotVisuals } from "./pivot";
 import { prefersReducedMotion } from "@/lib/motion";
 import { SIMULATION_ALPHA_DECAY } from "@/graph/constants";
 
@@ -23,15 +25,18 @@ import { SIMULATION_ALPHA_DECAY } from "@/graph/constants";
 // D3 simulation state lives here — NOT in React state or Zustand.
 
 type SvgSel = d3.Selection<SVGSVGElement, unknown, null, undefined>;
+type ZoomGroupSel = d3.Selection<SVGGElement, unknown, null, undefined>;
 type NodeSel = d3.Selection<SVGGElement, GraphNode, SVGGElement, unknown>;
 type EdgeSel = d3.Selection<SVGLineElement, GraphLink, SVGGElement, unknown>;
 
 let sim: d3.Simulation<GraphNode, GraphLink> | null = null;
 let svgSel: SvgSel | null = null;
+let zoomGroupSel: ZoomGroupSel | null = null;
 let nodeGroupSel: NodeSel | null = null;
 let edgeLineSel: EdgeSel | null = null;
 let onPivotFn: (mbid: string) => void = () => {};
 let cachedHop1Mbids: Set<string> = new Set();
+let resizeHandlerFn: (() => void) | null = null;
 
 // ─── Data conversion ──────────────────────────────────────────────────────────
 
@@ -159,6 +164,19 @@ function ticked(): void {
   if (edgeLineSel) updateEdgePositions(edgeLineSel);
 }
 
+// ─── Wrapped pivot handler ────────────────────────────────────────────────────
+
+/**
+ * Called when a non-focal node is clicked (by nodes.ts click handler).
+ * Phase 1: Immediately applies D3 visual transitions (beginPivotVisuals).
+ * Phase 2: Notifies React parent (onPivotFn) → store update → TanStack Query refetch.
+ * This keeps D3 visual work transparent to React — the prop callback is unchanged.
+ */
+function wrappedPivot(mbid: string): void {
+  if (nodeGroupSel) beginPivotVisuals(mbid, nodeGroupSel, cachedHop1Mbids);
+  onPivotFn(mbid);
+}
+
 // ─── Instant position assignment (prefersReducedMotion) ───────────────────────
 
 function assignInstantPositions(
@@ -224,9 +242,41 @@ export function initializeGraph(
 
   // One-time SVG structure setup
   setupGlowDefs(svgSel);
-  svgSel.append("g").attr("class", "edges"); // edges behind nodes
-  svgSel.append("g").attr("class", "nodes");
-  renderDirectionLabels(svgSel, width, height);
+
+  // zoom-group wraps edges + nodes so they pan/zoom together.
+  // Direction labels stay outside zoom-group and remain fixed.
+  zoomGroupSel = svgSel.append("g").attr("class", "zoom-group");
+  zoomGroupSel.append("g").attr("class", "edges"); // edges behind nodes
+  zoomGroupSel.append("g").attr("class", "nodes");
+  renderDirectionLabels(svgSel, width, height); // fixed — outside zoom-group
+
+  // Attach zoom/pan behavior (transform applied to zoomGroupSel)
+  initializeZoom(svgSel, zoomGroupSel);
+
+  // Window resize handler: update forces and zoom to match new dimensions
+  resizeHandlerFn = () => {
+    if (!svgSel || !zoomGroupSel || !sim) return;
+    const newWidth =
+      (typeof window !== "undefined" ? window.innerWidth : 1200) || 1200;
+    const newHeight =
+      (typeof window !== "undefined" ? window.innerHeight : 800) || 800;
+
+    (sim.force("center") as d3.ForceCenter<GraphNode>)
+      .x(newWidth / 2)
+      .y(newHeight / 2);
+    (sim.force("x") as d3.ForceX<GraphNode>).x((d) => {
+      if (d.direction === "upstream") return newWidth * 0.25;
+      if (d.direction === "downstream") return newWidth * 0.75;
+      return newWidth / 2;
+    });
+
+    sim.alpha(0.1).restart();
+    handleResize(svgSel, zoomGroupSel, newWidth, newHeight);
+  };
+
+  if (typeof window !== "undefined") {
+    window.addEventListener("resize", resizeHandlerFn);
+  }
 
   if (!graphData) return;
 
@@ -236,14 +286,14 @@ export function initializeGraph(
 
   // Render initial nodes and edges via D3 join
   edgeLineSel = renderEdges(
-    svgSel.select<SVGGElement>("g.edges"),
+    zoomGroupSel.select<SVGGElement>("g.edges"),
     links,
   );
   nodeGroupSel = renderNodes(
-    svgSel.select<SVGGElement>("g.nodes"),
+    zoomGroupSel.select<SVGGElement>("g.nodes"),
     nodes,
     cachedHop1Mbids,
-    onPivotFn,
+    wrappedPivot, // wrappedPivot runs beginPivotVisuals before notifying React
   );
 
   // Force simulation setup
@@ -299,12 +349,19 @@ export function updateGraphData(graphData: GraphData | null): void {
   const links = buildLinks(graphData.edges);
   cachedHop1Mbids = buildHop1Mbids(graphData);
 
-  edgeLineSel = renderEdges(svgSel.select<SVGGElement>("g.edges"), links);
+  const edgesContainer = zoomGroupSel
+    ? zoomGroupSel.select<SVGGElement>("g.edges")
+    : svgSel.select<SVGGElement>("g.edges");
+  const nodesContainer = zoomGroupSel
+    ? zoomGroupSel.select<SVGGElement>("g.nodes")
+    : svgSel.select<SVGGElement>("g.nodes");
+
+  edgeLineSel = renderEdges(edgesContainer, links);
   nodeGroupSel = renderNodes(
-    svgSel.select<SVGGElement>("g.nodes"),
+    nodesContainer,
     nodes,
     cachedHop1Mbids,
-    onPivotFn,
+    wrappedPivot,
   );
 
   // Update simulation with new data and restart
@@ -325,14 +382,26 @@ export function updateGraphData(graphData: GraphData | null): void {
  * Stop simulation and clear SVG. Called on component unmount.
  */
 export function cleanupGraph(): void {
+  // Remove window resize listener before clearing state
+  if (resizeHandlerFn && typeof window !== "undefined") {
+    window.removeEventListener("resize", resizeHandlerFn);
+    resizeHandlerFn = null;
+  }
+
   if (sim) {
     sim.stop();
     sim = null;
   }
+
+  // Remove zoom event listeners before clearing SVG content
+  cleanupZoom(svgSel);
+
   if (svgSel) {
     svgSel.selectAll("*").remove();
     svgSel = null;
   }
+
+  zoomGroupSel = null;
   nodeGroupSel = null;
   edgeLineSel = null;
 }

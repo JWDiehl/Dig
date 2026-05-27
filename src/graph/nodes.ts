@@ -19,10 +19,12 @@
 
 import * as d3 from "d3";
 import type { GraphNode } from "@/graph/types";
+import { prefersReducedMotion } from "@/lib/motion";
 import {
   NODE_RADIUS_FOCAL,
   NODE_RADIUS_HOP1,
   NODE_RADIUS_HOP2,
+  PIVOT_DURATION_MS,
 } from "@/graph/constants";
 
 // ─── Selection type aliases ───────────────────────────────────────────────────
@@ -107,18 +109,31 @@ export function renderNodes(
     .selectAll<SVGGElement, GraphNode>("g.node")
     .data(nodes, (d) => d.mbid);
 
-  // EXIT — remove departed nodes
-  sel.exit().remove();
+  // EXIT — fade out and remove departed nodes
+  if (prefersReducedMotion()) {
+    sel.exit().remove();
+  } else {
+    sel
+      .exit()
+      .transition()
+      .duration(PIVOT_DURATION_MS)
+      .attr("opacity", 0)
+      .remove();
+  }
 
-  // ENTER — create new node groups with full anatomy
+  // ENTER — create new node groups at opacity 0; faded in below
   const entered = sel
     .enter()
     .append<SVGGElement>("g")
     .attr("class", "node")
     .attr("role", "button")
     .attr("aria-label", (d) => `${d.name}, ${d.direction} influence`)
-    .style("cursor", "pointer")
-    .on("click", (_event, d) => onPivot(d.mbid))
+    .attr("opacity", 0) // Start invisible; fade-in transition applied after anatomy
+    .style("cursor", (d) => (d.direction === "focal" ? "default" : "pointer"))
+    .on("click", (_event, d) => {
+      if (d.direction === "focal") return; // Focal node is not clickable
+      onPivot(d.mbid);
+    })
     .on("mouseenter", function () {
       d3.select<SVGGElement, GraphNode>(this).select<SVGCircleElement>(".hover-ring").attr("opacity", 1);
     })
@@ -202,6 +217,13 @@ export function renderNodes(
     .attr("font-weight", (d) => (d.direction === "focal" ? "600" : "500"))
     .attr("pointer-events", "none")
     .text((d) => d.name);
+
+  // Fade in newly entered node groups
+  if (prefersReducedMotion()) {
+    entered.attr("opacity", 1);
+  } else {
+    entered.transition().duration(PIVOT_DURATION_MS).attr("opacity", 1);
+  }
 
   // MERGE — apply to both entered and updated groups
   const merged = entered.merge(sel as unknown as typeof entered);
