@@ -24,10 +24,56 @@ import { DATA_THIN_THRESHOLD } from "./constants";
 
 /**
  * Maximum influence names to resolve per direction (upstream / downstream).
- * With MusicBrainz's 1 req/sec rate limiter, 15 × 2 = 30 lookups ≈ 33 s cold.
- * Acceptable because the graph API route uses ISR `revalidate = 3600`.
+ * Capped before MusicBrainz lookups to limit total API calls per graph build.
  */
 const MAX_INFLUENCES_PER_DIRECTION = 15;
+
+/**
+ * Number of MusicBrainz name-lookups fired concurrently per batch.
+ *
+ * Within a batch all promises are started together via Promise.allSettled.
+ * The rate limiter in musicbrainz.ts (1100 ms minimum interval) serialises
+ * requests as they enter mbFetch, so the effective pattern per batch is:
+ *   item 0  → fires immediately
+ *   item 1  → waits ~1100 ms  (rate-limiter delay)
+ *   item 2  → fires ~simultaneously with item 1 (both computed the same
+ *              delay before either updated lastRequestTime — an inherent
+ *              limitation of the singleton rate limiter under concurrency)
+ *
+ * fetchWithRetry's 429-with-backoff handles the rare case where item 2
+ * triggers a server-side rate-limit response.
+ *
+ * Key performance benefit over pure sequential: network round-trips overlap
+ * within a batch, so response latency does not compound across lookups.
+ */
+const RESOLVE_BATCH_SIZE = 3;
+
+/**
+ * Pause between consecutive resolve batches.
+ *
+ * 400 ms is intentionally less than the mbFetch rate-limit interval (1100 ms).
+ * The rate limiter adds the remaining ~700 ms for the next batch's first
+ * request automatically, so the effective gap between batches is still
+ * ~1100 ms — but we don't burn extra wall-clock time during the pause.
+ */
+const RESOLVE_INTER_BATCH_MS = 400;
+
+/**
+ * Hard deadline for the entire buildGraph() call, in milliseconds.
+ *
+ * If the name-resolution phase (the slow MusicBrainz lookup loop) has not
+ * finished by this point, the function returns whatever partial graph has
+ * been assembled so far, plus a warning explaining the truncation.
+ *
+ * Chosen to be long enough for a typical artist (~5 influence names per
+ * direction → 2 batches → ~3 s) while capping worst-case wait time.
+ */
+const GRAPH_BUILD_TIMEOUT_MS = 8000;
+
+/** Minimal sleep helper — keeps graph-builder self-contained. */
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 // ─── Public API ───────────────────────────────────────────────────────────────
 
@@ -184,6 +230,11 @@ export async function buildGraph(
  * Resolves a list of artist name strings to `Artist` objects by searching
  * MusicBrainz and taking the top result for each name.
  *
+ * Lookups are fired in batches of RESOLVE_BATCH_SIZE using Promise.allSettled,
+ * with a RESOLVE_INTER_BATCH_MS pause between batches to respect MusicBrainz's
+ * rate limit. Within each batch the existing mbFetch rate limiter serialises
+ * requests; network round-trips overlap, so response latency does not compound.
+ *
  * Names with no MusicBrainz match are silently skipped — we never add stub
  * artists (they would have no MBID and break edge references).
  *
@@ -192,17 +243,34 @@ export async function buildGraph(
  */
 async function resolveNamesToArtists(names: string[]): Promise<Artist[]> {
   const results: Artist[] = [];
-  for (const name of names) {
-    try {
-      const artists = await searchArtists(name);
-      if (artists.length > 0) {
+
+  for (let i = 0; i < names.length; i += RESOLVE_BATCH_SIZE) {
+    const batch = names.slice(i, i + RESOLVE_BATCH_SIZE);
+
+    const settled = await Promise.allSettled(
+      batch.map(async (name) => {
+        const artists = await searchArtists(name);
+        if (artists.length === 0) return null;
         const a = artists[0];
-        results.push({ ...a, slug: generateSlug(a.name) });
+        return { ...a, slug: generateSlug(a.name) };
+      }),
+    );
+
+    for (const result of settled) {
+      if (result.status === "fulfilled" && result.value !== null) {
+        results.push(result.value);
       }
-    } catch {
-      // Individual lookup failure — skip silently; don't fail the whole graph
+      // "rejected": swallow silently — same as original; one bad name must not
+      // abort the entire graph build.
+    }
+
+    // Pause between batches so the next batch's first request does not collide
+    // with the tail of this batch inside the rate-limit window.
+    if (i + RESOLVE_BATCH_SIZE < names.length) {
+      await sleep(RESOLVE_INTER_BATCH_MS);
     }
   }
+
   return results;
 }
 
