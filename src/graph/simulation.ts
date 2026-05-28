@@ -131,7 +131,7 @@ function setupGlowDefs(svg: SvgSel): void {
     .attr("width", "200%")
     .attr("height", "200%");
 
-  filter.append("feGaussianBlur").attr("stdDeviation", "4").attr("result", "coloredBlur");
+  filter.append("feGaussianBlur").attr("stdDeviation", "6").attr("result", "coloredBlur");
 
   const feMerge = filter.append("feMerge");
   feMerge.append("feMergeNode").attr("in", "coloredBlur");
@@ -151,9 +151,10 @@ function renderDirectionLabels(svg: SvgSel, width: number, height: number): void
       .attr("text-anchor", "middle")
       .attr("dominant-baseline", "middle")
       .attr("fill", "#F3EDDD")
-      .attr("opacity", 0.13)
-      .attr("font-size", "11px")
-      .attr("letter-spacing", "0.15em")
+      .attr("opacity", 0.18)
+      .attr("font-size", "10px")
+      .attr("letter-spacing", "0.22em")
+      .attr("font-weight", "500")
       .attr("pointer-events", "none")
       .attr("user-select", "none")
       .text(text);

@@ -41,6 +41,22 @@ export function TopNav({ onArtistSelect }: TopNavProps) {
       }}
       aria-label="Top navigation"
     >
+      {/* Wordmark — links back to the landing page */}
+      <a
+        href="/"
+        aria-label="Dig — home"
+        className="flex-shrink-0 text-[13px] font-semibold tracking-[0.22em] text-[#F3EDDD] hover:text-[#EDC458] transition-colors duration-200 select-none"
+      >
+        DIG
+      </a>
+
+      {/* Divider */}
+      <div
+        className="flex-shrink-0 w-px h-4 self-center"
+        style={{ backgroundColor: "rgba(243,237,221,0.12)" }}
+        aria-hidden="true"
+      />
+
       {/* Search input — flex-1 so it fills the remaining width after the toggle */}
       <ArtistSearchInput
         onSelect={onArtistSelect}

@@ -152,7 +152,7 @@ export function renderNodes(
     .attr("fill", (d) =>
       d.direction === "focal" ? WHITE_RABBIT : genreColor(d.genres),
     )
-    .attr("fill-opacity", 0.18)
+    .attr("fill-opacity", 0.26)
     .attr("filter", "url(#glow)")
     .attr("pointer-events", "none");
 

@@ -84,8 +84,13 @@ function GraphView() {
     return (
       <>
         <TopNav onArtistSelect={handleArtistSelect} />
-        <div className="flex h-full items-center justify-center text-[#A09880]">
-          Loading…
+        <div className="flex h-full flex-col items-center justify-center gap-4">
+          <span className="text-[13px] font-semibold tracking-[0.22em] text-[#F3EDDD] animate-pulse select-none">
+            DIG
+          </span>
+          <span className="text-[11px] tracking-[0.2em] uppercase text-[#4A4640] select-none">
+            Building graph…
+          </span>
         </div>
       </>
     );
@@ -95,8 +100,13 @@ function GraphView() {
     return (
       <>
         <TopNav onArtistSelect={handleArtistSelect} />
-        <div className="flex h-full items-center justify-center text-[#A09880]">
-          Error: {error.message}
+        <div className="flex h-full flex-col items-center justify-center gap-2">
+          <span className="text-[13px] text-[#A09880]">
+            Could not load artist graph.
+          </span>
+          <span className="text-[11px] tracking-[0.08em] text-[#4A4640]">
+            {error.message}
+          </span>
         </div>
       </>
     );
@@ -107,10 +117,19 @@ function GraphView() {
       <TopNav onArtistSelect={handleArtistSelect} />
       {/* "Follow the thread." subtitle — landing page only */}
       {!focalArtistId && (
-        <p className="fixed top-12 left-0 right-0 text-center text-[13px] text-[#A09880] pointer-events-none z-40 select-none">
-          Follow the thread.
+        <p className="fixed top-12 left-0 right-0 text-center text-[10px] tracking-[0.28em] uppercase text-[#4A4640] pointer-events-none z-40 select-none pt-[6px]">
+          Follow the thread
         </p>
       )}
+      {/* Vignette — subtle radial darkening draws focus toward the center of the graph */}
+      <div
+        className="fixed inset-0 pointer-events-none z-10"
+        style={{
+          background:
+            "radial-gradient(ellipse at 50% 55%, transparent 35%, rgba(26,24,20,0.55) 100%)",
+        }}
+        aria-hidden="true"
+      />
       <GraphCanvas
         graphData={graphData}
         filterEras={[]}
