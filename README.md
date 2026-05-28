@@ -4,7 +4,7 @@
 
 Dig is an interactive music influence explorer. Search for any artist and see a live force-directed graph of who shaped them and who they went on to shape — upstream influences on the left, downstream on the right. Click any node to pivot and follow the thread as far as it goes.
 
-Live at → **[dig-d4jlt9tul-jwdiehls-projects.vercel.app](https://dig-d4jlt9tul-jwdiehls-projects.vercel.app)**
+Live at → **[dig-iota.vercel.app](https://dig-iota.vercel.app)**
 
 ---
 
