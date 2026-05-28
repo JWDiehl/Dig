@@ -72,7 +72,7 @@ export function ArtistGraphView({ mbid }: ArtistGraphViewProps) {
     return (
       <>
         <TopNav onArtistSelect={handleArtistSelect} />
-        <div className="flex h-full items-center justify-center text-[#A09880]">
+        <div className="flex h-full items-center justify-center text-[#555555]">
           Loading…
         </div>
       </>
@@ -83,7 +83,7 @@ export function ArtistGraphView({ mbid }: ArtistGraphViewProps) {
     return (
       <>
         <TopNav onArtistSelect={handleArtistSelect} />
-        <div className="flex h-full items-center justify-center text-[#A09880]">
+        <div className="flex h-full items-center justify-center text-[#555555]">
           Error: {error.message}
         </div>
       </>
@@ -93,7 +93,7 @@ export function ArtistGraphView({ mbid }: ArtistGraphViewProps) {
   return (
     <GraphErrorBoundary
       fallback={
-        <div className="flex h-full items-center justify-center text-[#A09880]">
+        <div className="flex h-full items-center justify-center text-[#555555]">
           Graph engine error — check the console.
         </div>
       }

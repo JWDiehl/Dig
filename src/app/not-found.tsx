@@ -25,7 +25,7 @@ export default function NotFound() {
     <div className="h-full flex flex-col bg-canvas">
       <TopNav onArtistSelect={handleArtistSelect} />
       <div className="flex flex-1 items-center justify-center">
-        <p className="text-[15px] text-[#A09880] text-center px-4">
+        <p className="text-[15px] text-[#555555] text-center px-4">
           Page not found. Try searching for an artist.
         </p>
       </div>

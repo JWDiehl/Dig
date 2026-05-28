@@ -35,12 +35,12 @@ type NodeSel = d3.Selection<SVGGElement, GraphNode, SVGGElement, unknown>;
 // ─── Genre color mapping ──────────────────────────────────────────────────────
 
 /** Colour palette (from tailwind.config.ts and UX spec). */
-const HONEY_BEE = "#EDC458"; // Jazz / blues / soul / folk / world / reggae
-const KILLER_QUEEN = "#E05E37"; // Rock / punk / funk / metal
-const PURPLE_HAZE = "#9F76B6"; // Electronic / ambient / experimental / synth
-const MR_BLUE_SKY = "#ABCDBB"; // Hip-hop / R&B / rap
-const TUSK = "#D3CEB8"; // Classical / uncategorized fallback
-const WHITE_RABBIT = "#F3EDDD"; // Focal artist — always overrides genre
+const HONEY_BEE = "#F0B429";    // Jazz / blues / soul / folk / world / reggae
+const KILLER_QUEEN = "#FF4F1F"; // Rock / punk / funk / metal
+const PURPLE_HAZE = "#A855F7";  // Electronic / ambient / experimental / synth
+const MR_BLUE_SKY = "#22D3EE";  // Hip-hop / R&B / rap
+const TUSK = "#94A3B8";         // Classical / uncategorized fallback
+const WHITE_RABBIT = "#F1F1F1"; // Focal artist — always overrides genre
 
 /**
  * Map an artist's genre array to the appropriate genre-family hex colour.
@@ -195,7 +195,7 @@ export function renderNodes(
     .append<SVGCircleElement>("circle")
     .attr("class", "data-thin-dot")
     .attr("r", 3)
-    .attr("fill", "#EDC458")
+    .attr("fill", "#F0B429")
     .attr("cy", (d) => {
       const isHop1 = hop1Mbids.has(d.mbid);
       return -(nodeRadius(d.direction, isHop1)); // top of perimeter

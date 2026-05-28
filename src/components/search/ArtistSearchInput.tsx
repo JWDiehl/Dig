@@ -64,7 +64,7 @@ export function ArtistSearchInput({ onSelect, className }: ArtistSearchInputProp
           onValueChange={setQuery}
           placeholder="Search any artist…"
           aria-label="Search artists"
-          className="w-full bg-transparent text-[15px] text-[#F3EDDD] placeholder:text-[#A09880] outline-none border-0"
+          className="w-full bg-transparent text-[15px] text-[#F1F1F1] placeholder:text-[#444444] outline-none border-0"
           onKeyDown={(e) => {
             // cmdk does not natively clear the input on Escape — we do it manually.
             if (e.key === "Escape") {
@@ -77,8 +77,8 @@ export function ArtistSearchInput({ onSelect, className }: ArtistSearchInputProp
           <Command.List
             className="absolute top-full left-0 right-0 mt-1 rounded-md overflow-hidden shadow-lg z-50"
             style={{
-              backgroundColor: "rgba(38,34,28,0.96)",
-              border: "1px solid rgba(243,237,221,0.08)",
+              backgroundColor: "rgba(16,16,16,0.98)",
+              border: "1px solid rgba(255,255,255,0.08)",
               maxHeight: "360px",
               overflowY: "auto",
             }}
@@ -86,7 +86,7 @@ export function ArtistSearchInput({ onSelect, className }: ArtistSearchInputProp
             {/* Empty state — only show after results have resolved (not during load) */}
             {!isPending && artists.length === 0 && (
               <Command.Empty
-                className="px-3 py-4 text-[13px] text-[#A09880] text-center"
+                className="px-3 py-4 text-[13px] text-[#555555] text-center"
               >
                 No artists found for &apos;{query}&apos;
               </Command.Empty>

@@ -150,7 +150,7 @@ function renderDirectionLabels(svg: SvgSel, width: number, height: number): void
       .attr("y", midY)
       .attr("text-anchor", "middle")
       .attr("dominant-baseline", "middle")
-      .attr("fill", "#F3EDDD")
+      .attr("fill", "#FFFFFF")
       .attr("opacity", 0.18)
       .attr("font-size", "10px")
       .attr("letter-spacing", "0.22em")

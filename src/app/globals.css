@@ -20,8 +20,8 @@ html,
 body {
   height: 100%;
   overflow: hidden;
-  background-color: #1a1814; /* canvas token — avoid white flash before CSS loads */
-  color: #f3eddd; /* text-primary */
+  background-color: #0a0a0a; /* canvas token — avoid white flash before CSS loads */
+  color: #f1f1f1; /* text-primary */
 }
 
 /*

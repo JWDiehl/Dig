@@ -25,7 +25,7 @@ import { PIVOT_DURATION_MS, NODE_RADIUS_FOCAL } from "@/graph/constants";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const WHITE_RABBIT = "#F3EDDD"; // Focal artist fill (must match nodes.ts)
+const WHITE_RABBIT = "#F1F1F1"; // Focal artist fill (must match nodes.ts)
 
 // ─── Selection type alias ─────────────────────────────────────────────────────
 

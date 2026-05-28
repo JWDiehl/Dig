@@ -36,7 +36,7 @@ export function SearchResultItem({ artist }: SearchResultItemProps) {
       {/* Artist name — text-primary, 13px */}
       <span
         className="text-[13px] font-medium leading-snug"
-        style={{ color: "#F3EDDD" }}
+        style={{ color: "#F1F1F1" }}
       >
         {artist.name}
       </span>
@@ -45,7 +45,7 @@ export function SearchResultItem({ artist }: SearchResultItemProps) {
       {detail !== null && (
         <span
           className="text-[11px] leading-snug mt-0.5"
-          style={{ color: "#A09880" }}
+          style={{ color: "#666666" }}
         >
           {detail}
         </span>

@@ -227,37 +227,37 @@ describe("GraphCanvas", () => {
 import { genreColor } from "./nodes";
 
 describe("genreColor", () => {
-  it("maps jazz to Honey Bee (#EDC458)", () => {
-    expect(genreColor(["jazz"])).toBe("#EDC458");
+  it("maps jazz to Honey Bee (#F0B429)", () => {
+    expect(genreColor(["jazz"])).toBe("#F0B429");
   });
 
-  it("maps rock to Killer Queen (#E05E37)", () => {
-    expect(genreColor(["rock"])).toBe("#E05E37");
+  it("maps rock to Killer Queen (#FF4F1F)", () => {
+    expect(genreColor(["rock"])).toBe("#FF4F1F");
   });
 
-  it("maps electronic to Purple Haze (#9F76B6)", () => {
-    expect(genreColor(["electronic"])).toBe("#9F76B6");
+  it("maps electronic to Purple Haze (#A855F7)", () => {
+    expect(genreColor(["electronic"])).toBe("#A855F7");
   });
 
-  it("maps hip-hop to Mr. Blue Sky (#ABCDBB)", () => {
-    expect(genreColor(["hip-hop"])).toBe("#ABCDBB");
+  it("maps hip-hop to Mr. Blue Sky (#22D3EE)", () => {
+    expect(genreColor(["hip-hop"])).toBe("#22D3EE");
   });
 
-  it("maps folk to Honey Bee (#EDC458)", () => {
-    expect(genreColor(["folk"])).toBe("#EDC458");
+  it("maps folk to Honey Bee (#F0B429)", () => {
+    expect(genreColor(["folk"])).toBe("#F0B429");
   });
 
-  it("falls back to Tusk (#D3CEB8) for unknown genres", () => {
-    expect(genreColor(["classical", "orchestral"])).toBe("#D3CEB8");
+  it("falls back to Tusk (#94A3B8) for unknown genres", () => {
+    expect(genreColor(["classical", "orchestral"])).toBe("#94A3B8");
   });
 
-  it("falls back to Tusk (#D3CEB8) for empty array", () => {
-    expect(genreColor([])).toBe("#D3CEB8");
+  it("falls back to Tusk (#94A3B8) for empty array", () => {
+    expect(genreColor([])).toBe("#94A3B8");
   });
 
   it("uses first matching genre in a mixed array", () => {
     // hip-hop checked before jazz — should return Mr. Blue Sky
-    expect(genreColor(["hip-hop", "jazz"])).toBe("#ABCDBB");
+    expect(genreColor(["hip-hop", "jazz"])).toBe("#22D3EE");
   });
 });
 

@@ -2,7 +2,7 @@
  * edges.ts — D3 edge rendering for the Dig graph canvas.
  *
  * Renders influence edges as SVG <line> elements.
- * All edges use Tusk color (#D3CEB8) at EDGE_OPACITY_DEFAULT (13%) opacity.
+ * All edges use Tusk color (#94A3B8) at EDGE_OPACITY_DEFAULT (13%) opacity.
  * The `confidence` field is preserved for future visual differentiation.
  *
  * Exports:
@@ -21,7 +21,7 @@ type EdgeSel = d3.Selection<SVGLineElement, GraphLink, SVGGElement, unknown>;
 
 // ─── Tusk color (edge default) ────────────────────────────────────────────────
 
-const TUSK = "#D3CEB8";
+const TUSK = "#94A3B8";
 
 // ─── renderEdges ──────────────────────────────────────────────────────────────
 

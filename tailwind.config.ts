@@ -12,26 +12,26 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Layout
-        canvas: "#1a1814",
-        chrome: "rgba(28,24,20,0.92)",
-        "surface-elevated": "rgba(38,34,28,0.96)",
+        // Layout — deep space / OLED black
+        canvas: "#0A0A0A",
+        chrome: "rgba(10,10,10,0.94)",
+        "surface-elevated": "rgba(16,16,16,0.98)",
 
         // Typography
-        "text-primary": "#F3EDDD",
-        "text-secondary": "#8a8470",
-        "text-dim": "#52503f",
+        "text-primary": "#F1F1F1",
+        "text-secondary": "#666666",
+        "text-dim": "#333333",
 
         // Signals
-        "data-thin": "#EDC458",
-        "focus-ring": "#F3EDDD",
+        "data-thin": "#F0B429",
+        "focus-ring": "#F1F1F1",
 
-        // Genre-family palette (UX-DR4)
-        "honey-bee": "#EDC458", // Jazz / blues / soul / folk / world
-        "killer-queen": "#E05E37", // Rock / punk / funk
-        "purple-haze": "#9F76B6", // Electronic / ambient / experimental
-        "mr-blue-sky": "#ABCDBB", // Hip-hop / R&B
-        tusk: "#D3CEB8", // Classical / uncategorized + edge default
+        // Genre-family palette — vivid on OLED black
+        "honey-bee": "#F0B429",    // Jazz / blues / soul / folk / world
+        "killer-queen": "#FF4F1F", // Rock / punk / funk / metal
+        "purple-haze": "#A855F7",  // Electronic / ambient / experimental
+        "mr-blue-sky": "#22D3EE",  // Hip-hop / R&B
+        tusk: "#94A3B8",           // Classical / uncategorized + edge default
       },
     },
   },
