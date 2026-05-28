@@ -25,6 +25,7 @@ import { GraphCanvas } from "@/graph/GraphCanvas";
 import { GraphErrorBoundary } from "@/graph/GraphErrorBoundary";
 import { TopNav } from "@/components/nav/TopNav";
 import { useDigStore } from "@/store";
+import { GenreLegend } from "@/components/graph/GenreLegend";
 import type { Artist, GraphData } from "@/lib/data/types";
 
 function countByDirection(graphData: GraphData, dir: "upstream" | "downstream") {
@@ -108,6 +109,7 @@ export function ArtistGraphView({ mbid }: ArtistGraphViewProps) {
         upstreamCount={graphData ? countByDirection(graphData, "upstream") : 0}
         downstreamCount={graphData ? countByDirection(graphData, "downstream") : 0}
       />
+      <GenreLegend />
     </GraphErrorBoundary>
   );
 }

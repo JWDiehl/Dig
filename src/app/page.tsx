@@ -20,6 +20,7 @@ import { GraphCanvas } from "@/graph/GraphCanvas";
 import { GraphErrorBoundary } from "@/graph/GraphErrorBoundary";
 import { TopNav } from "@/components/nav/TopNav";
 import { useDigStore } from "@/store";
+import { GenreLegend } from "@/components/graph/GenreLegend";
 import type { Artist, GraphData } from "@/lib/data/types";
 
 // Static landing data — imported at build time, no API call
@@ -139,6 +140,7 @@ function GraphView() {
         upstreamCount={graphData ? countByDirection(graphData, "upstream") : 0}
         downstreamCount={graphData ? countByDirection(graphData, "downstream") : 0}
       />
+      <GenreLegend />
     </>
   );
 }
