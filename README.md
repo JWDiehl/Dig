@@ -6,6 +6,9 @@ Dig is an interactive music influence explorer. Search for any artist and see a 
 
 Live at → **[dig-iota.vercel.app](https://dig-iota.vercel.app)**
 
+<img width="1383" height="858" alt="image" src="https://github.com/user-attachments/assets/3df6a920-d889-4a99-a9ea-2dab49b626c9" />
+
+
 ---
 
 ## What it does
