@@ -210,7 +210,7 @@ export function renderNodes(
     .attr("dominant-baseline", "auto")
     .attr("dy", (d) => {
       const isHop1 = hop1Mbids.has(d.mbid);
-      return nodeRadius(d.direction, isHop1) + 14;
+      return nodeRadius(d.direction, isHop1) + 22;
     })
     .attr("fill", WHITE_RABBIT)
     .attr("font-size", (d) => (d.direction === "focal" ? "15px" : "13px"))
