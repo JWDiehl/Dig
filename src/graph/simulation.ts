@@ -413,8 +413,8 @@ export function initializeGraph(
       .x(newWidth / 2)
       .y(newHeight / 2);
     (sim.force("x") as d3.ForceX<GraphNode>).x((d) => {
-      if (d.direction === "upstream") return newWidth * 0.25;
-      if (d.direction === "downstream") return newWidth * 0.75;
+      if (d.direction === "upstream") return newWidth / 2 - newWidth * 0.35;
+      if (d.direction === "downstream") return newWidth / 2 + newWidth * 0.35;
       return newWidth / 2;
     });
 
@@ -455,19 +455,22 @@ export function initializeGraph(
       d3
         .forceLink<GraphNode, GraphLink>(links)
         .id((d) => d.mbid)
-        .distance(180),
+        .distance(200),
     )
-    .force("charge", d3.forceManyBody<GraphNode>().strength(-800))
+    .force("charge", d3.forceManyBody<GraphNode>().strength(-1000))
     .force("center", d3.forceCenter(width / 2, height / 2).strength(0.05))
     .force(
       "x",
       d3
         .forceX<GraphNode>((d) => {
-          if (d.direction === "upstream") return width * 0.2;
-          if (d.direction === "downstream") return width * 0.8;
+          if (d.direction === "upstream") return width / 2 - width * 0.35;
+          if (d.direction === "downstream") return width / 2 + width * 0.35;
           return width / 2; // focal stays centered
         })
-        .strength(0.8),
+        .strength((d) => {
+          if (d.direction === "focal") return 0.05;
+          return 1.2; // strong pull for upstream left, downstream right
+        }),
     )
     .force(
       "collision",
