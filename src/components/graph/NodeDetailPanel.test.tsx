@@ -19,6 +19,12 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { NodeDetailPanel } from "./NodeDetailPanel";
 import type { Artist } from "@/lib/data/types";
 
+// Mock useAudioPreview — NodeDetailPanel tests cover the panel UI, not audio.
+// Audio integration is tested in useAudioPreview.test.ts and AudioPreviewControl.test.tsx.
+vi.mock("@/hooks/useAudioPreview", () => ({
+  useAudioPreview: () => ({ previewUrl: null, isPending: false }),
+}));
+
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
 const mockArtistFull: Artist = {

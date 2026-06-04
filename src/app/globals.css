@@ -41,3 +41,16 @@ body {
     justify-content: center;
   }
 }
+
+/*
+ * Waveform animation — AudioPreviewControl playing state (Story 2.2)
+ * Applied to each bar via .animate-waveform; staggered via animation-delay inline.
+ */
+@keyframes waveform {
+  0%, 100% { height: 4px; }
+  50% { height: 14px; }
+}
+
+.animate-waveform {
+  animation: waveform 0.8s ease-in-out infinite;
+}

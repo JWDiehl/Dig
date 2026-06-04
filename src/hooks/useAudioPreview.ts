@@ -1,39 +1,52 @@
 /**
- * useAudioPreview — TanStack Query v5 hook for fetching Spotify preview URLs.
+ * useAudioPreview — TanStack Query v5 hook for fetching a Spotify preview URL.
  *
- * Fetches from GET /api/preview/[mbid] and returns the previewUrl (or null).
- * Query does not execute when mbid is null or undefined (enabled: !!mbid).
+ * Fires GET /api/preview/[mbid]?name={artistName} when both mbid and artistName
+ * are non-empty (e.g., when NodeDetailPanel opens on hover).
  *
- * Note: The /api/preview/[mbid] route is implemented in Story 2.2.
- * This hook is created here because it belongs to the same data-fetching
- * layer and follows the same pattern as the other hooks.
+ * staleTime: 0   — preview URLs are ephemeral; always refetch on mount.
+ * retry: false   — audio is enhancement; one attempt is enough.
  *
- * Usage:
- *   const { data, isPending } = useAudioPreview(mbid)
- *   const previewUrl = data?.data.previewUrl ?? null
- *   // previewUrl: string | null — null means no preview available
+ * Returns { previewUrl: string | null, isPending: boolean }.
+ * On any fetch failure, previewUrl is null (graceful degradation, no throw).
+ *
+ * Story 2.2 wires this into NodeDetailPanel → AudioPreviewControl.
  */
 
 import { useQuery } from "@tanstack/react-query";
 
-// ─── Response type ────────────────────────────────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────────
 
-interface PreviewApiResponse {
-  data: { previewUrl: string | null };
+interface PreviewData {
+  previewUrl: string | null;
 }
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
-export function useAudioPreview(mbid: string | null | undefined) {
-  return useQuery<PreviewApiResponse>({
+export function useAudioPreview(mbid: string, artistName: string) {
+  const enabled = !!mbid && !!artistName;
+
+  const { data, isPending } = useQuery<PreviewData>({
     queryKey: ["preview", mbid],
     queryFn: async () => {
-      const res = await fetch(`/api/preview/${mbid}`);
-      if (!res.ok) {
-        throw new Error(`Preview fetch failed: ${res.status}`);
+      try {
+        const res = await fetch(
+          `/api/preview/${mbid}?name=${encodeURIComponent(artistName)}`,
+        );
+        if (!res.ok) return { previewUrl: null };
+        const json = (await res.json()) as { data: PreviewData };
+        return json.data;
+      } catch {
+        return { previewUrl: null }; // never throw — audio is enhancement
       }
-      return res.json() as Promise<PreviewApiResponse>;
     },
-    enabled: !!mbid,
+    enabled,
+    staleTime: 0,
+    retry: false,
   });
+
+  return {
+    previewUrl: data?.previewUrl ?? null,
+    isPending: enabled && isPending,
+  };
 }

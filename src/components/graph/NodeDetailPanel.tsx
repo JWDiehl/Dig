@@ -14,6 +14,8 @@
 
 import { useEffect, useState } from "react";
 import type { Artist } from "@/lib/data/types";
+import { useAudioPreview } from "@/hooks/useAudioPreview";
+import { AudioPreviewControl } from "./AudioPreviewControl";
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -27,6 +29,8 @@ export interface NodeDetailPanelProps {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function NodeDetailPanel({ artist, onClose }: NodeDetailPanelProps) {
+  const { previewUrl, isPending } = useAudioPreview(artist.mbid, artist.name);
+
   // One-frame delay triggers CSS transition on mount (opacity 0 → 1).
   const [isVisible, setIsVisible] = useState(false);
 
@@ -81,7 +85,23 @@ export function NodeDetailPanel({ artist, onClose }: NodeDetailPanelProps) {
         </p>
       )}
 
-      {/* AudioPreviewControl — Story 2.2 */}
+      {/* Audio preview — loading placeholder while fetching, control when ready */}
+      {isPending && (
+        <div className="mt-3 pt-3 flex gap-[5px] items-center"
+             style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+          {[0, 1, 2].map((i) => (
+            <div
+              key={i}
+              className="w-1 h-1 rounded-full bg-[#333333] animate-pulse"
+              style={{ animationDelay: `${i * 150}ms` }}
+            />
+          ))}
+        </div>
+      )}
+      {!isPending && previewUrl && (
+        <AudioPreviewControl previewUrl={previewUrl} mbid={artist.mbid} />
+      )}
+      {/* !isPending && !previewUrl → slot absent (AC5) */}
     </aside>
   );
 }
