@@ -4,7 +4,7 @@
  * Exports:
  *   genreColor(genres)            — maps genre tags → hex color
  *   nodeRadius(direction, isHop1) — returns correct radius constant
- *   renderNodes(container, nodes, hop1Mbids, onPivot, onHover) — D3 join, full anatomy
+ *   renderNodes(container, nodes, hop1Mbids, onPivot, onHover, onExpand, expandedMbids) — D3 join, full anatomy
  *   updateNodePositions(sel)      — called each simulation tick
  *
  * Node anatomy (layers, inside-out per UX-DR6):
@@ -13,6 +13,7 @@
  *   3. Hover ring   — <circle> stroke only, visible on mouseenter
  *   4. Data-thin dot — <circle r="3"> amber, top perimeter (isDataThin only)
  *   5. Label text   — <text> below circle, Geist-weight by hop level
+ *   6. Expand ring  — <circle> dashed stroke +10px, visible on hover (non-focal, non-expanded)
  *
  * RULE: All radius/opacity constants come from @/graph/constants — never hardcoded.
  */
@@ -102,8 +103,9 @@ function fillOpacity(direction: "focal" | "upstream" | "downstream", isHop1: boo
  * Each group:
  *   - role="button" + tabindex="0" (non-focal) for accessibility
  *   - click → onPivot(mbid)
- *   - mouseenter/mouseleave → hover ring + HOVER_DETAIL_DELAY_MS dwell → onHover(mbid|null)
+ *   - mouseenter/mouseleave → hover ring + expand ring + HOVER_DETAIL_DELAY_MS dwell → onHover
  *   - keydown Enter/Space → onHover(mbid) immediately (keyboard users skip dwell)
+ *   - expand ring click → onExpand(mbid) [stopPropagation — does NOT pivot]
  */
 export function renderNodes(
   container: NodeContainer,
@@ -111,6 +113,8 @@ export function renderNodes(
   hop1Mbids: Set<string>,
   onPivot: (mbid: string) => void,
   onHover: (mbid: string | null) => void,
+  onExpand: (mbid: string) => void,
+  expandedMbids: Set<string>,
 ): NodeSel {
   const sel = (container as unknown as d3.Selection<SVGGElement, unknown, null, undefined>)
     .selectAll<SVGGElement, GraphNode>("g.node")
@@ -150,14 +154,21 @@ export function renderNodes(
       }
     })
     .on("mouseenter", function (_event, d) {
-      d3.select<SVGGElement, GraphNode>(this).select<SVGCircleElement>(".hover-ring").attr("opacity", 1);
+      const group = d3.select<SVGGElement, GraphNode>(this);
+      group.select<SVGCircleElement>(".hover-ring").attr("opacity", 1);
       if (d.direction !== "focal") {
         if (hoverTimer) clearTimeout(hoverTimer);
         hoverTimer = setTimeout(() => { onHover(d.mbid); }, HOVER_DETAIL_DELAY_MS);
+        // Expand ring: only for non-expanded leaf nodes
+        if (!expandedMbids.has(d.mbid)) {
+          group.select<SVGCircleElement>(".expand-ring").attr("opacity", 1);
+        }
       }
     })
     .on("mouseleave", function () {
-      d3.select<SVGGElement, GraphNode>(this).select<SVGCircleElement>(".hover-ring").attr("opacity", 0);
+      const group = d3.select<SVGGElement, GraphNode>(this);
+      group.select<SVGCircleElement>(".hover-ring").attr("opacity", 0);
+      group.select<SVGCircleElement>(".expand-ring").attr("opacity", 0);
       if (hoverTimer) { clearTimeout(hoverTimer); hoverTimer = null; }
       onHover(null);
     });
@@ -238,6 +249,27 @@ export function renderNodes(
     .attr("font-weight", (d) => (d.direction === "focal" ? "600" : "500"))
     .attr("pointer-events", "none")
     .text((d) => d.name);
+
+  // 6. Expand ring — dashed outer ring for leaf node expansion (non-focal only)
+  entered
+    .filter((d) => d.direction !== "focal")
+    .append<SVGCircleElement>("circle")
+    .attr("class", "expand-ring")
+    .attr("r", (d) => {
+      const isHop1 = hop1Mbids.has(d.mbid);
+      return nodeRadius(d.direction, isHop1) + 10;
+    })
+    .attr("fill", "none")
+    .attr("stroke", "rgba(255,255,255,0.35)")
+    .attr("stroke-width", 1.5)
+    .attr("stroke-dasharray", "4 3")
+    .attr("opacity", 0)
+    .attr("pointer-events", "all") // ring is independently clickable
+    .attr("cursor", "pointer")
+    .on("click", (event, d) => {
+      event.stopPropagation(); // prevent pivot on parent group
+      if (!expandedMbids.has(d.mbid)) onExpand(d.mbid);
+    });
 
   // Fade in newly entered node groups
   if (prefersReducedMotion()) {

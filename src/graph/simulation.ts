@@ -18,6 +18,7 @@ import { renderNodes, updateNodePositions } from "./nodes";
 import { renderEdges, updateEdgePositions } from "./edges";
 import { initializeZoom, handleResize, cleanupZoom } from "./zoom";
 import { beginPivotVisuals } from "./pivot";
+import { fetchExpandData } from "./expand";
 import { prefersReducedMotion } from "@/lib/motion";
 import {
   SIMULATION_ALPHA_DECAY,
@@ -43,6 +44,9 @@ let onPivotFn: (mbid: string) => void = () => {};
 let onHoverFn: (mbid: string | null) => void = () => {};
 let cachedHop1Mbids: Set<string> = new Set();
 let resizeHandlerFn: (() => void) | null = null;
+// ─── Expansion state ──────────────────────────────────────────────────────────
+let expandedMbids: Set<string> = new Set();
+let currentGraphData: GraphData | null = null;
 
 // ─── Data conversion ──────────────────────────────────────────────────────────
 
@@ -189,6 +193,134 @@ function wrappedHover(mbid: string | null): void {
   onHoverFn(mbid);
 }
 
+function wrappedExpand(mbid: string): void {
+  void expandGraphNode(mbid);
+}
+
+// ─── DataThinBadge helper ─────────────────────────────────────────────────────
+
+function addDataThinDot(mbid: string): void {
+  if (!nodeGroupSel) return;
+  nodeGroupSel
+    .filter((d) => d.mbid === mbid)
+    .each(function (d) {
+      const el = d3.select(this);
+      if (!el.select(".data-thin-dot").empty()) return; // already present
+      const isHop1 = cachedHop1Mbids.has(d.mbid);
+      let r: number;
+      if (d.direction === "focal") r = NODE_RADIUS_FOCAL;
+      else if (isHop1) r = NODE_RADIUS_HOP1;
+      else r = NODE_RADIUS_HOP2;
+      el.append<SVGCircleElement>("circle")
+        .attr("class", "data-thin-dot")
+        .attr("r", 3)
+        .attr("fill", "#F0B429")
+        .attr("cy", -r)
+        .attr("pointer-events", "none");
+    });
+}
+
+// ─── On-demand hop expansion ──────────────────────────────────────────────────
+
+/**
+ * Expand a leaf node by fetching its +1 hop connections and merging them
+ * into the live D3 simulation. Called when the user clicks the expand ring.
+ *
+ * Expansion is D3-internal: React's graphData prop is not updated. The
+ * expanded state persists until the next pivot (which calls updateGraphData
+ * and resets expandedMbids and currentGraphData).
+ */
+export async function expandGraphNode(mbid: string): Promise<void> {
+  if (!sim || !zoomGroupSel || !svgSel || !currentGraphData) return;
+  if (expandedMbids.has(mbid)) return; // guard against double-click
+
+  // Mark expanded immediately to prevent re-entry during async fetch
+  expandedMbids.add(mbid);
+
+  // Hide expand ring on this node
+  if (nodeGroupSel) {
+    nodeGroupSel
+      .filter((d) => d.mbid === mbid)
+      .select(".expand-ring")
+      .attr("opacity", 0)
+      .attr("pointer-events", "none");
+  }
+
+  // Fetch expansion data
+  const { artists: newArtists, edges: newEdges } = await fetchExpandData(mbid);
+
+  // Empty result → DataThinBadge, no simulation update
+  if (newArtists.length === 0 && newEdges.length === 0) {
+    addDataThinDot(mbid);
+    return;
+  }
+
+  // Get current simulation nodes (with their live x/y positions)
+  const existingNodes = sim.nodes();
+  const existingMbids = new Set(existingNodes.map((n) => n.mbid));
+
+  // Find expanded node for starting position + direction inheritance
+  const expandedNode = existingNodes.find((n) => n.mbid === mbid);
+  const expandedDirection = expandedNode?.direction ?? "upstream";
+  const startX = expandedNode?.x ?? 0;
+  const startY = expandedNode?.y ?? 0;
+
+  // Build GraphNodes for artists not already in the graph
+  const addedArtists = newArtists.filter((a) => !existingMbids.has(a.mbid));
+  const addedNodes: GraphNode[] = addedArtists.map((a): GraphNode => ({
+    mbid: a.mbid,
+    name: a.name,
+    genres: a.genres,
+    direction: expandedDirection,
+    isDataThin: a.isDataThin,
+    opacity: 1,
+    // Start at expanded node's position with small jitter; simulation drifts them out
+    x: startX + (Math.random() - 0.5) * 30,
+    y: startY + (Math.random() - 0.5) * 30,
+  }));
+
+  if (addedNodes.length === 0 && newEdges.length === 0) {
+    // All artists were duplicates
+    addDataThinDot(mbid);
+    return;
+  }
+
+  // Merge into currentGraphData
+  currentGraphData = {
+    ...currentGraphData,
+    artists: [...currentGraphData.artists, ...addedArtists],
+    edges: [...currentGraphData.edges, ...newEdges],
+  };
+
+  const allNodes = [...existingNodes, ...addedNodes];
+  const allLinks = buildLinks(currentGraphData.edges);
+
+  // Update simulation nodes then links (order matters: nodes first so forceLink can resolve IDs)
+  sim.nodes(allNodes);
+  (sim.force("link") as d3.ForceLink<GraphNode, GraphLink>).links(allLinks);
+
+  // Re-render via D3 general join (existing → UPDATE stays, new → ENTER drifts in)
+  const edgesContainer = zoomGroupSel.select<SVGGElement>("g.edges");
+  const nodesContainer = zoomGroupSel.select<SVGGElement>("g.nodes");
+  edgeLineSel = renderEdges(edgesContainer, allLinks);
+  nodeGroupSel = renderNodes(
+    nodesContainer,
+    allNodes,
+    cachedHop1Mbids,
+    wrappedPivot,
+    wrappedHover,
+    wrappedExpand,
+    expandedMbids,
+  );
+
+  sim.alpha(0.3).restart();
+
+  if (prefersReducedMotion()) {
+    sim.stop();
+    ticked();
+  }
+}
+
 // ─── Instant position assignment (prefersReducedMotion) ───────────────────────
 
 function assignInstantPositions(
@@ -237,6 +369,8 @@ export function initializeGraph(
 ): void {
   onPivotFn = onPivot;
   onHoverFn = onHover;
+  currentGraphData = graphData;
+  expandedMbids = new Set();
   svgSel = d3.select(svgEl);
 
   // Clear any stale content from previous mounts
@@ -309,6 +443,8 @@ export function initializeGraph(
     cachedHop1Mbids,
     wrappedPivot,
     wrappedHover,
+    wrappedExpand,
+    expandedMbids,
   );
 
   // Force simulation setup
@@ -360,6 +496,10 @@ export function updateGraphData(graphData: GraphData | null): void {
   if (!sim || !svgSel) return;
   if (!graphData) return;
 
+  // Reset expansion state for the new focal artist
+  expandedMbids = new Set();
+  currentGraphData = graphData;
+
   const nodes = buildNodes(graphData);
   const links = buildLinks(graphData.edges);
   cachedHop1Mbids = buildHop1Mbids(graphData);
@@ -378,6 +518,8 @@ export function updateGraphData(graphData: GraphData | null): void {
     cachedHop1Mbids,
     wrappedPivot,
     wrappedHover,
+    wrappedExpand,
+    expandedMbids,
   );
 
   // Update simulation with new data and restart
@@ -420,4 +562,6 @@ export function cleanupGraph(): void {
   zoomGroupSel = null;
   nodeGroupSel = null;
   edgeLineSel = null;
+  expandedMbids = new Set();
+  currentGraphData = null;
 }
