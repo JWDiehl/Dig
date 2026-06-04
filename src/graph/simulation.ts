@@ -447,6 +447,10 @@ export function initializeGraph(
     expandedMbids,
   );
 
+  // When one side is empty, the focal node needs a stronger centering pull to
+  // resist the forceCenter re-balancing the asymmetric layout rightward.
+  const hasDownstream = nodes.some((n) => n.direction === "downstream");
+
   // Force simulation setup
   sim = d3
     .forceSimulation<GraphNode, GraphLink>(nodes)
@@ -465,10 +469,10 @@ export function initializeGraph(
         .forceX<GraphNode>((d) => {
           if (d.direction === "upstream") return width / 2 - width * 0.35;
           if (d.direction === "downstream") return width / 2 + width * 0.35;
-          return width / 2; // focal stays centered
+          return width / 2; // focal always targets center
         })
         .strength((d) => {
-          if (d.direction === "focal") return 0.05;
+          if (d.direction === "focal") return hasDownstream ? 0.05 : 0.8;
           return 1.2; // strong pull for upstream left, downstream right
         }),
     )
