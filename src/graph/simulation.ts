@@ -455,9 +455,9 @@ export function initializeGraph(
       d3
         .forceLink<GraphNode, GraphLink>(links)
         .id((d) => d.mbid)
-        .distance(150),
+        .distance(180),
     )
-    .force("charge", d3.forceManyBody<GraphNode>().strength(-600))
+    .force("charge", d3.forceManyBody<GraphNode>().strength(-800))
     .force("center", d3.forceCenter(width / 2, height / 2).strength(0.05))
     .force(
       "x",
@@ -467,7 +467,7 @@ export function initializeGraph(
           if (d.direction === "downstream") return width * 0.8;
           return width / 2; // focal stays centered
         })
-        .strength(0.5),
+        .strength(0.8),
     )
     .force(
       "collision",
