@@ -40,6 +40,7 @@ let zoomGroupSel: ZoomGroupSel | null = null;
 let nodeGroupSel: NodeSel | null = null;
 let edgeLineSel: EdgeSel | null = null;
 let onPivotFn: (mbid: string) => void = () => {};
+let onHoverFn: (mbid: string | null) => void = () => {};
 let cachedHop1Mbids: Set<string> = new Set();
 let resizeHandlerFn: (() => void) | null = null;
 
@@ -179,8 +180,13 @@ function ticked(): void {
  * This keeps D3 visual work transparent to React — the prop callback is unchanged.
  */
 function wrappedPivot(mbid: string): void {
+  onHoverFn(null); // close detail panel immediately on pivot
   if (nodeGroupSel) beginPivotVisuals(mbid, nodeGroupSel, cachedHop1Mbids);
   onPivotFn(mbid);
+}
+
+function wrappedHover(mbid: string | null): void {
+  onHoverFn(mbid);
 }
 
 // ─── Instant position assignment (prefersReducedMotion) ───────────────────────
@@ -227,8 +233,10 @@ export function initializeGraph(
   svgEl: SVGSVGElement,
   graphData: GraphData | null,
   onPivot: (mbid: string) => void,
+  onHover: (mbid: string | null) => void,
 ): void {
   onPivotFn = onPivot;
+  onHoverFn = onHover;
   svgSel = d3.select(svgEl);
 
   // Clear any stale content from previous mounts
@@ -299,7 +307,8 @@ export function initializeGraph(
     zoomGroupSel.select<SVGGElement>("g.nodes"),
     nodes,
     cachedHop1Mbids,
-    wrappedPivot, // wrappedPivot runs beginPivotVisuals before notifying React
+    wrappedPivot,
+    wrappedHover,
   );
 
   // Force simulation setup
@@ -368,6 +377,7 @@ export function updateGraphData(graphData: GraphData | null): void {
     nodes,
     cachedHop1Mbids,
     wrappedPivot,
+    wrappedHover,
   );
 
   // Update simulation with new data and restart

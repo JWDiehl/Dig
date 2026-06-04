@@ -18,7 +18,7 @@
  * ArtistGraphView will call it via useEffect when it mounts.
  */
 
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useArtistGraph } from "@/hooks/useArtistGraph";
 import { GraphCanvas } from "@/graph/GraphCanvas";
@@ -26,6 +26,7 @@ import { GraphErrorBoundary } from "@/graph/GraphErrorBoundary";
 import { TopNav } from "@/components/nav/TopNav";
 import { useDigStore } from "@/store";
 import { GenreLegend } from "@/components/graph/GenreLegend";
+import { NodeDetailPanel } from "@/components/graph/NodeDetailPanel";
 import type { Artist, GraphData } from "@/lib/data/types";
 
 function countByDirection(graphData: GraphData, dir: "upstream" | "downstream") {
@@ -42,6 +43,10 @@ export function ArtistGraphView({ mbid }: ArtistGraphViewProps) {
   const setFocalArtist = useDigStore((state) => state.setFocalArtist);
   const { data, isPending, error } = useArtistGraph(mbid);
   const graphData = data?.data ?? null;
+  const [hoveredMbid, setHoveredMbid] = useState<string | null>(null);
+
+  const hoveredArtist = graphData?.artists.find((a) => a.mbid === hoveredMbid) ?? null;
+  const handleHover = useCallback((id: string | null) => setHoveredMbid(id), []);
 
   // Sync Zustand so any hooks reading focalArtistId see the current artist
   useEffect(() => {
@@ -52,6 +57,7 @@ export function ArtistGraphView({ mbid }: ArtistGraphViewProps) {
   // The destination ArtistGraphView will call setFocalArtist via useEffect.
   const handleArtistSelect = useCallback(
     (artist: Artist) => {
+      setHoveredMbid(null);
       router.push(`/artist/${artist.slug}`);
     },
     [router],
@@ -61,6 +67,7 @@ export function ArtistGraphView({ mbid }: ArtistGraphViewProps) {
   // Same ownership rule: do NOT call setFocalArtist here.
   const handlePivot = useCallback(
     (pivotMbid: string) => {
+      setHoveredMbid(null);
       const artist = graphData?.artists.find((a) => a.mbid === pivotMbid);
       if (artist?.slug) {
         router.push(`/artist/${artist.slug}`);
@@ -105,11 +112,18 @@ export function ArtistGraphView({ mbid }: ArtistGraphViewProps) {
         filterEras={[]}
         filterGenres={[]}
         onPivot={handlePivot}
+        onHover={handleHover}
         focalArtistName={graphData?.focalArtist.name ?? ""}
         upstreamCount={graphData ? countByDirection(graphData, "upstream") : 0}
         downstreamCount={graphData ? countByDirection(graphData, "downstream") : 0}
       />
       <GenreLegend />
+      {hoveredArtist && (
+        <NodeDetailPanel
+          artist={hoveredArtist}
+          onClose={() => setHoveredMbid(null)}
+        />
+      )}
     </GraphErrorBoundary>
   );
 }

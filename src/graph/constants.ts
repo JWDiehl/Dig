@@ -18,6 +18,13 @@
 export const PIVOT_DURATION_MS = 700;
 
 /**
+ * Dwell delay before NodeDetailPanel opens on node hover (ms).
+ * Prevents the panel flickering open during fast cursor sweeps across the canvas.
+ * Distinct from HOVER_DWELL_MS, which gates audio preview (Story 2.2).
+ */
+export const HOVER_DETAIL_DELAY_MS = 200;
+
+/**
  * Hover dwell time before Spotify audio preview begins (ms).
  * Audio starts only after the cursor has rested on a node for this duration.
  */

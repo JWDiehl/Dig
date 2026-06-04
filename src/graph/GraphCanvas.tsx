@@ -37,6 +37,13 @@ export interface GraphCanvasProps {
    */
   onPivot: (mbid: string) => void;
 
+  /**
+   * Called when a non-focal node is hovered (after HOVER_DETAIL_DELAY_MS dwell)
+   * or keyboard-activated (Enter/Space). Null signals hover end.
+   * Optional — defaults to no-op so existing callers need no change.
+   */
+  onHover?: (mbid: string | null) => void;
+
   /** Display name of the focal artist — used in the SVG aria-label. */
   focalArtistName: string;
 
@@ -54,6 +61,7 @@ export function GraphCanvas({
   filterEras,
   filterGenres,
   onPivot,
+  onHover,
   focalArtistName,
   upstreamCount,
   downstreamCount,
@@ -63,7 +71,7 @@ export function GraphCanvas({
   // ── Effect 1: Init — D3 takes ownership of the SVG element ───────────────
   useEffect(() => {
     if (!svgRef.current) return;
-    initializeGraph(svgRef.current, graphData, onPivot);
+    initializeGraph(svgRef.current, graphData, onPivot, onHover ?? (() => {}));
     return () => cleanupGraph();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Intentionally empty: D3 owns SVG lifecycle after mount

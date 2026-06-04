@@ -13,7 +13,7 @@
  *   - Subtitle disappears; normal loading/error states apply
  */
 
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import beatlesDataRaw from "@/../public/data/beatles.json";
 import { useArtistGraph } from "@/hooks/useArtistGraph";
 import { GraphCanvas } from "@/graph/GraphCanvas";
@@ -21,6 +21,7 @@ import { GraphErrorBoundary } from "@/graph/GraphErrorBoundary";
 import { TopNav } from "@/components/nav/TopNav";
 import { useDigStore } from "@/store";
 import { GenreLegend } from "@/components/graph/GenreLegend";
+import { NodeDetailPanel } from "@/components/graph/NodeDetailPanel";
 import type { Artist, GraphData } from "@/lib/data/types";
 
 // Static landing data — imported at build time, no API call
@@ -36,6 +37,7 @@ function countByDirection(graphData: GraphData, dir: "upstream" | "downstream") 
 function GraphView() {
   const setFocalArtist = useDigStore((state) => state.setFocalArtist);
   const focalArtistId = useDigStore((state) => state.focalArtistId);
+  const [hoveredMbid, setHoveredMbid] = useState<string | null>(null);
 
   // Query is disabled when focalArtistId is null (enabled: !!mbid in the hook).
   // On landing, no API call fires — milesData serves as the graph immediately.
@@ -46,6 +48,10 @@ function GraphView() {
     ? (data?.data ?? null)
     : beatlesData;
 
+  const hoveredArtist = graphData?.artists.find((a) => a.mbid === hoveredMbid) ?? null;
+
+  const handleHover = useCallback((mbid: string | null) => setHoveredMbid(mbid), []);
+
   // Replace the initial history entry so the Back button works from the first pivot
   useEffect(() => {
     window.history.replaceState({ focalMbid: BEATLES_MBID }, "");
@@ -55,6 +61,7 @@ function GraphView() {
   // pushState keeps the URL in sync; landing page stays on / until first selection.
   const handleArtistSelect = useCallback(
     (artist: Artist) => {
+      setHoveredMbid(null);
       setFocalArtist(artist.mbid);
       window.history.pushState(
         { focalMbid: artist.mbid },
@@ -69,6 +76,7 @@ function GraphView() {
   // Artist slug comes from current graphData (not from search result).
   const handlePivot = useCallback(
     (mbid: string) => {
+      setHoveredMbid(null);
       setFocalArtist(mbid);
       const artist = graphData?.artists.find((a) => a.mbid === mbid);
       window.history.pushState(
@@ -136,11 +144,18 @@ function GraphView() {
         filterEras={[]}
         filterGenres={[]}
         onPivot={handlePivot}
+        onHover={handleHover}
         focalArtistName={graphData?.focalArtist.name ?? ""}
         upstreamCount={graphData ? countByDirection(graphData, "upstream") : 0}
         downstreamCount={graphData ? countByDirection(graphData, "downstream") : 0}
       />
       <GenreLegend />
+      {hoveredArtist && (
+        <NodeDetailPanel
+          artist={hoveredArtist}
+          onClose={() => setHoveredMbid(null)}
+        />
+      )}
     </>
   );
 }

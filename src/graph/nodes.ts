@@ -4,7 +4,7 @@
  * Exports:
  *   genreColor(genres)            — maps genre tags → hex color
  *   nodeRadius(direction, isHop1) — returns correct radius constant
- *   renderNodes(container, nodes, hop1Mbids, onPivot) — D3 join, full anatomy
+ *   renderNodes(container, nodes, hop1Mbids, onPivot, onHover) — D3 join, full anatomy
  *   updateNodePositions(sel)      — called each simulation tick
  *
  * Node anatomy (layers, inside-out per UX-DR6):
@@ -25,7 +25,12 @@ import {
   NODE_RADIUS_HOP1,
   NODE_RADIUS_HOP2,
   PIVOT_DURATION_MS,
+  HOVER_DETAIL_DELAY_MS,
 } from "@/graph/constants";
+
+// ─── Hover timer ──────────────────────────────────────────────────────────────
+// Module-level: only one node can be hovered at a time.
+let hoverTimer: ReturnType<typeof setTimeout> | null = null;
 
 // ─── Selection type aliases ───────────────────────────────────────────────────
 
@@ -95,15 +100,17 @@ function fillOpacity(direction: "focal" | "upstream" | "downstream", isHop1: boo
  * Appends/updates/removes <g class="node"> elements inside the nodes container.
  *
  * Each group:
- *   - role="button" + aria-label for accessibility
+ *   - role="button" + tabindex="0" (non-focal) for accessibility
  *   - click → onPivot(mbid)
- *   - mouseenter/mouseleave → hover ring visibility
+ *   - mouseenter/mouseleave → hover ring + HOVER_DETAIL_DELAY_MS dwell → onHover(mbid|null)
+ *   - keydown Enter/Space → onHover(mbid) immediately (keyboard users skip dwell)
  */
 export function renderNodes(
   container: NodeContainer,
   nodes: GraphNode[],
   hop1Mbids: Set<string>,
   onPivot: (mbid: string) => void,
+  onHover: (mbid: string | null) => void,
 ): NodeSel {
   const sel = (container as unknown as d3.Selection<SVGGElement, unknown, null, undefined>)
     .selectAll<SVGGElement, GraphNode>("g.node")
@@ -128,17 +135,31 @@ export function renderNodes(
     .attr("class", "node")
     .attr("role", "button")
     .attr("aria-label", (d) => `${d.name}, ${d.direction} influence`)
+    .attr("tabindex", (d) => (d.direction === "focal" ? null : "0"))
     .attr("opacity", 0) // Start invisible; fade-in transition applied after anatomy
     .style("cursor", (d) => (d.direction === "focal" ? "default" : "pointer"))
     .on("click", (_event, d) => {
       if (d.direction === "focal") return; // Focal node is not clickable
       onPivot(d.mbid);
     })
-    .on("mouseenter", function () {
+    .on("keydown", (_event, d) => {
+      const e = _event as KeyboardEvent;
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        if (d.direction !== "focal") onHover(d.mbid); // keyboard: no dwell delay
+      }
+    })
+    .on("mouseenter", function (_event, d) {
       d3.select<SVGGElement, GraphNode>(this).select<SVGCircleElement>(".hover-ring").attr("opacity", 1);
+      if (d.direction !== "focal") {
+        if (hoverTimer) clearTimeout(hoverTimer);
+        hoverTimer = setTimeout(() => { onHover(d.mbid); }, HOVER_DETAIL_DELAY_MS);
+      }
     })
     .on("mouseleave", function () {
       d3.select<SVGGElement, GraphNode>(this).select<SVGCircleElement>(".hover-ring").attr("opacity", 0);
+      if (hoverTimer) { clearTimeout(hoverTimer); hoverTimer = null; }
+      onHover(null);
     });
 
   // 1. Glow halo
