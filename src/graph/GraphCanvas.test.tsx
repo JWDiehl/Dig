@@ -21,6 +21,8 @@ import type { GraphData } from "@/lib/data/types";
 
 vi.mock("@/lib/motion", () => ({
   prefersReducedMotion: vi.fn().mockReturnValue(true),
+  isMobileViewport: vi.fn().mockReturnValue(false),      // desktop radii in tests
+  isDesktopHoverEnabled: vi.fn().mockReturnValue(true),  // hover enabled in tests
 }));
 
 // ─── Test fixtures ────────────────────────────────────────────────────────────

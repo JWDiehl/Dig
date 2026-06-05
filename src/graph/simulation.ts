@@ -19,12 +19,15 @@ import { renderEdges, updateEdgePositions } from "./edges";
 import { initializeZoom, handleResize, cleanupZoom } from "./zoom";
 import { beginPivotVisuals } from "./pivot";
 import { fetchExpandData } from "./expand";
-import { prefersReducedMotion } from "@/lib/motion";
+import { prefersReducedMotion, isMobileViewport } from "@/lib/motion";
 import {
   SIMULATION_ALPHA_DECAY,
   NODE_RADIUS_FOCAL,
   NODE_RADIUS_HOP1,
   NODE_RADIUS_HOP2,
+  NODE_RADIUS_FOCAL_MOBILE,
+  NODE_RADIUS_HOP1_MOBILE,
+  NODE_RADIUS_HOP2_MOBILE,
 } from "@/graph/constants";
 
 // ─── Module-level mutable state ───────────────────────────────────────────────
@@ -208,10 +211,11 @@ function addDataThinDot(mbid: string): void {
       const el = d3.select(this);
       if (!el.select(".data-thin-dot").empty()) return; // already present
       const isHop1 = cachedHop1Mbids.has(d.mbid);
+      const mobile = isMobileViewport();
       let r: number;
-      if (d.direction === "focal") r = NODE_RADIUS_FOCAL;
-      else if (isHop1) r = NODE_RADIUS_HOP1;
-      else r = NODE_RADIUS_HOP2;
+      if (d.direction === "focal") r = mobile ? NODE_RADIUS_FOCAL_MOBILE : NODE_RADIUS_FOCAL;
+      else if (isHop1) r = mobile ? NODE_RADIUS_HOP1_MOBILE : NODE_RADIUS_HOP1;
+      else r = mobile ? NODE_RADIUS_HOP2_MOBILE : NODE_RADIUS_HOP2;
       el.append<SVGCircleElement>("circle")
         .attr("class", "data-thin-dot")
         .attr("r", 3)
@@ -452,6 +456,7 @@ export function initializeGraph(
   // When one side is empty, the focal node needs a stronger centering pull to
   // resist the forceCenter re-balancing the asymmetric layout rightward.
   const hasDownstream = nodes.some((n) => n.direction === "downstream");
+  const mobile = isMobileViewport();
 
   // Force simulation setup
   sim = d3
@@ -482,9 +487,9 @@ export function initializeGraph(
       "collision",
       d3.forceCollide<GraphNode>((d) => {
         const isHop1 = cachedHop1Mbids.has(d.mbid);
-        if (d.direction === "focal") return NODE_RADIUS_FOCAL + 25;
-        if (isHop1) return NODE_RADIUS_HOP1 + 25;
-        return NODE_RADIUS_HOP2 + 25;
+        if (d.direction === "focal") return (mobile ? NODE_RADIUS_FOCAL_MOBILE : NODE_RADIUS_FOCAL) + 25;
+        if (isHop1) return (mobile ? NODE_RADIUS_HOP1_MOBILE : NODE_RADIUS_HOP1) + 25;
+        return (mobile ? NODE_RADIUS_HOP2_MOBILE : NODE_RADIUS_HOP2) + 25;
       }),
     )
     .alphaDecay(SIMULATION_ALPHA_DECAY)
@@ -532,8 +537,16 @@ export function updateGraphData(graphData: GraphData | null): void {
   );
 
   // Update simulation with new data and restart
+  // Rebuild collision with current viewport so mobile/desktop radii stay correct after pivot
+  const mobileUpdate = isMobileViewport();
   sim.nodes(nodes);
   (sim.force("link") as d3.ForceLink<GraphNode, GraphLink>).links(links);
+  sim.force("collision", d3.forceCollide<GraphNode>((d) => {
+    const isHop1 = cachedHop1Mbids.has(d.mbid);
+    if (d.direction === "focal") return (mobileUpdate ? NODE_RADIUS_FOCAL_MOBILE : NODE_RADIUS_FOCAL) + 25;
+    if (isHop1) return (mobileUpdate ? NODE_RADIUS_HOP1_MOBILE : NODE_RADIUS_HOP1) + 25;
+    return (mobileUpdate ? NODE_RADIUS_HOP2_MOBILE : NODE_RADIUS_HOP2) + 25;
+  }));
   sim.alpha(0.3).restart();
 
   if (prefersReducedMotion()) {

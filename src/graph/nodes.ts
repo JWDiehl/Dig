@@ -20,11 +20,14 @@
 
 import * as d3 from "d3";
 import type { GraphNode } from "@/graph/types";
-import { prefersReducedMotion } from "@/lib/motion";
+import { prefersReducedMotion, isMobileViewport, isDesktopHoverEnabled } from "@/lib/motion";
 import {
   NODE_RADIUS_FOCAL,
   NODE_RADIUS_HOP1,
   NODE_RADIUS_HOP2,
+  NODE_RADIUS_FOCAL_MOBILE,
+  NODE_RADIUS_HOP1_MOBILE,
+  NODE_RADIUS_HOP2_MOBILE,
   PIVOT_DURATION_MS,
   HOVER_DETAIL_DELAY_MS,
 } from "@/graph/constants";
@@ -83,8 +86,10 @@ export function nodeRadius(
   direction: "focal" | "upstream" | "downstream",
   isHop1: boolean,
 ): number {
-  if (direction === "focal") return NODE_RADIUS_FOCAL;
-  return isHop1 ? NODE_RADIUS_HOP1 : NODE_RADIUS_HOP2;
+  const mobile = isMobileViewport();
+  if (direction === "focal") return mobile ? NODE_RADIUS_FOCAL_MOBILE : NODE_RADIUS_FOCAL;
+  if (isHop1) return mobile ? NODE_RADIUS_HOP1_MOBILE : NODE_RADIUS_HOP1;
+  return mobile ? NODE_RADIUS_HOP2_MOBILE : NODE_RADIUS_HOP2;
 }
 
 // ─── Fill opacity by hop level ────────────────────────────────────────────────
@@ -156,10 +161,12 @@ export function renderNodes(
     .on("mouseenter", function (_event, d) {
       const group = d3.select<SVGGElement, GraphNode>(this);
       group.select<SVGCircleElement>(".hover-ring").attr("opacity", 1);
-      if (d.direction !== "focal") {
+      // Detail panel and expand ring: desktop only (≥ 1024px). On tablet/mobile
+      // the hover ring still appears as touch feedback, but the panel doesn't open.
+      if (d.direction !== "focal" && isDesktopHoverEnabled()) {
         if (hoverTimer) clearTimeout(hoverTimer);
         hoverTimer = setTimeout(() => { onHover(d.mbid); }, HOVER_DETAIL_DELAY_MS);
-        // Expand ring: only for non-expanded leaf nodes
+        // Expand ring: only for non-expanded leaf nodes on desktop
         if (!expandedMbids.has(d.mbid)) {
           group.select<SVGCircleElement>(".expand-ring").attr("opacity", 1);
         }

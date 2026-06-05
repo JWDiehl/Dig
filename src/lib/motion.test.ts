@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { prefersReducedMotion } from "./motion";
+import { prefersReducedMotion, isMobileViewport, isDesktopHoverEnabled } from "./motion";
 
 // Helper: stub window.matchMedia with a given `matches` value.
 function mockMatchMedia(matches: boolean) {
@@ -52,5 +52,65 @@ describe("prefersReducedMotion", () => {
 
     // Restore window so subsequent tests are unaffected.
     global.window = original;
+  });
+});
+
+describe("isMobileViewport — Story 3.1", () => {
+  it("returns false in SSR environment", () => {
+    const original = global.window;
+    // @ts-expect-error — intentionally removing window for SSR simulation
+    delete global.window;
+    expect(isMobileViewport()).toBe(false);
+    global.window = original;
+  });
+
+  it("returns true when innerWidth < 768", () => {
+    Object.defineProperty(window, "innerWidth", { writable: true, configurable: true, value: 375 });
+    expect(isMobileViewport()).toBe(true);
+  });
+
+  it("returns false at exactly 768px (tablet breakpoint)", () => {
+    Object.defineProperty(window, "innerWidth", { writable: true, configurable: true, value: 768 });
+    expect(isMobileViewport()).toBe(false);
+  });
+
+  it("returns false at 1440px (desktop)", () => {
+    Object.defineProperty(window, "innerWidth", { writable: true, configurable: true, value: 1440 });
+    expect(isMobileViewport()).toBe(false);
+  });
+});
+
+describe("isDesktopHoverEnabled — Story 3.1", () => {
+  it("returns true in SSR environment (desktop-first default)", () => {
+    const original = global.window;
+    // @ts-expect-error — intentionally removing window for SSR simulation
+    delete global.window;
+    expect(isDesktopHoverEnabled()).toBe(true);
+    global.window = original;
+  });
+
+  it("returns false on mobile (375px)", () => {
+    Object.defineProperty(window, "innerWidth", { writable: true, configurable: true, value: 375 });
+    expect(isDesktopHoverEnabled()).toBe(false);
+  });
+
+  it("returns false at tablet width (768px)", () => {
+    Object.defineProperty(window, "innerWidth", { writable: true, configurable: true, value: 768 });
+    expect(isDesktopHoverEnabled()).toBe(false);
+  });
+
+  it("returns false at 1023px (just below desktop threshold)", () => {
+    Object.defineProperty(window, "innerWidth", { writable: true, configurable: true, value: 1023 });
+    expect(isDesktopHoverEnabled()).toBe(false);
+  });
+
+  it("returns true at exactly 1024px (desktop breakpoint)", () => {
+    Object.defineProperty(window, "innerWidth", { writable: true, configurable: true, value: 1024 });
+    expect(isDesktopHoverEnabled()).toBe(true);
+  });
+
+  it("returns true at 1440px (desktop)", () => {
+    Object.defineProperty(window, "innerWidth", { writable: true, configurable: true, value: 1440 });
+    expect(isDesktopHoverEnabled()).toBe(true);
   });
 });

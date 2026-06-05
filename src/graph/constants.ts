@@ -71,6 +71,14 @@ export const NODE_RADIUS_HOP1 = 16;
 /** Radius of 2-hop influence nodes (smallest; genre color at 50% opacity). */
 export const NODE_RADIUS_HOP2 = 11;
 
+// Mobile equivalents — 80% of desktop radii (UX-DR16: nodes 20% smaller on < 768px)
+/** Mobile focal artist radius (80% of desktop). */
+export const NODE_RADIUS_FOCAL_MOBILE = 19;
+/** Mobile hop-1 radius (80% of desktop). */
+export const NODE_RADIUS_HOP1_MOBILE = 13;
+/** Mobile hop-2 radius (80% of desktop). */
+export const NODE_RADIUS_HOP2_MOBILE = 9;
+
 // ─── Physics ─────────────────────────────────────────────────────────────────
 
 /**

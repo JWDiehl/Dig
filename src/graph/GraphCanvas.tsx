@@ -108,6 +108,7 @@ export function GraphCanvas({
       className="w-screen h-screen"
       role="img"
       aria-label={ariaLabel}
+      style={{ touchAction: "none" }}
     />
   );
 }
