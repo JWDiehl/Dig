@@ -1,21 +1,15 @@
 "use client";
 
 /**
- * ArtistGraphView — client component for the /artist/[slug] route (Story 1.12).
+ * ArtistGraphView — client component for the /artist/[slug] route (Story 1.12 / 2.4).
  *
  * Receives a resolved MBID from the Server Component (page.tsx).
  *
  * Responsibilities:
  *   - Sync Zustand focalArtistId to the current mbid on mount/change
  *   - Fetch the influence graph via useArtistGraph
- *   - Render TopNav + GraphCanvas (same structure as the landing page)
+ *   - Render TopNav + FilterPanel + GraphCanvas
  *   - Handle search selection and node pivot via router.push (client navigation)
- *
- * Navigation note: both handleArtistSelect and handlePivot use router.push()
- * rather than window.history.pushState(). This triggers the Server Component
- * for the new route, which calls resolveSlug again with the new slug.
- * setFocalArtist is NOT called in these handlers — the newly mounted
- * ArtistGraphView will call it via useEffect when it mounts.
  */
 
 import { useCallback, useEffect, useState } from "react";
@@ -24,6 +18,7 @@ import { useArtistGraph } from "@/hooks/useArtistGraph";
 import { GraphCanvas } from "@/graph/GraphCanvas";
 import { GraphErrorBoundary } from "@/graph/GraphErrorBoundary";
 import { TopNav } from "@/components/nav/TopNav";
+import { FilterPanel } from "@/components/filters/FilterPanel";
 import { useDigStore } from "@/store";
 import { GenreLegend } from "@/components/graph/GenreLegend";
 import { NodeDetailPanel } from "@/components/graph/NodeDetailPanel";
@@ -41,9 +36,17 @@ interface ArtistGraphViewProps {
 export function ArtistGraphView({ mbid }: ArtistGraphViewProps) {
   const router = useRouter();
   const setFocalArtist = useDigStore((state) => state.setFocalArtist);
+  const filterEras = useDigStore((state) => state.filterEras);
+  const filterGenres = useDigStore((state) => state.filterGenres);
+  const setFilters = useDigStore((state) => state.setFilters);
+
   const { data, isPending, error } = useArtistGraph(mbid);
   const graphData = data?.data ?? null;
+
   const [hoveredMbid, setHoveredMbid] = useState<string | null>(null);
+  const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
+
+  const isFilterActive = filterEras.length > 0 || filterGenres.length > 0;
 
   const hoveredArtist = graphData?.artists.find((a) => a.mbid === hoveredMbid) ?? null;
   const handleHover = useCallback((id: string | null) => setHoveredMbid(id), []);
@@ -53,8 +56,6 @@ export function ArtistGraphView({ mbid }: ArtistGraphViewProps) {
     setFocalArtist(mbid);
   }, [mbid, setFocalArtist]);
 
-  // Search selection: navigate to the selected artist's route.
-  // The destination ArtistGraphView will call setFocalArtist via useEffect.
   const handleArtistSelect = useCallback(
     (artist: Artist) => {
       setHoveredMbid(null);
@@ -63,8 +64,6 @@ export function ArtistGraphView({ mbid }: ArtistGraphViewProps) {
     [router],
   );
 
-  // Node pivot: derive slug from current graphData, then navigate.
-  // Same ownership rule: do NOT call setFocalArtist here.
   const handlePivot = useCallback(
     (pivotMbid: string) => {
       setHoveredMbid(null);
@@ -76,10 +75,17 @@ export function ArtistGraphView({ mbid }: ArtistGraphViewProps) {
     [graphData, router],
   );
 
+  const navProps = {
+    onArtistSelect: handleArtistSelect,
+    onFilterToggle: () => setIsFilterPanelOpen((p) => !p),
+    isFilterPanelOpen,
+    isFilterActive,
+  };
+
   if (isPending) {
     return (
       <>
-        <TopNav onArtistSelect={handleArtistSelect} />
+        <TopNav {...navProps} />
         <div className="flex h-full items-center justify-center text-[#555555]">
           Loading…
         </div>
@@ -90,7 +96,7 @@ export function ArtistGraphView({ mbid }: ArtistGraphViewProps) {
   if (error) {
     return (
       <>
-        <TopNav onArtistSelect={handleArtistSelect} />
+        <TopNav {...navProps} />
         <div className="flex h-full items-center justify-center text-[#555555]">
           Error: {error.message}
         </div>
@@ -106,11 +112,18 @@ export function ArtistGraphView({ mbid }: ArtistGraphViewProps) {
         </div>
       }
     >
-      <TopNav onArtistSelect={handleArtistSelect} />
+      <TopNav {...navProps} />
+      <FilterPanel
+        graphData={graphData}
+        filterEras={filterEras}
+        filterGenres={filterGenres}
+        onFiltersChange={setFilters}
+        isOpen={isFilterPanelOpen}
+      />
       <GraphCanvas
         graphData={graphData}
-        filterEras={[]}
-        filterGenres={[]}
+        filterEras={filterEras}
+        filterGenres={filterGenres}
         onPivot={handlePivot}
         onHover={handleHover}
         focalArtistName={graphData?.focalArtist.name ?? ""}

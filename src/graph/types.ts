@@ -34,6 +34,12 @@ export interface GraphNode extends SimulationNodeDatum {
   /** Genre tags — used to determine genre-family color and filter matching. */
   genres: string[];
 
+  /**
+   * Active decade/era string (e.g. "1960s"). Null when unavailable.
+   * Used by applyFilters() in filters.ts for era-based dimming.
+   */
+  era: string | null;
+
   /** Node's role in the graph layout. */
   direction: "focal" | "upstream" | "downstream";
 

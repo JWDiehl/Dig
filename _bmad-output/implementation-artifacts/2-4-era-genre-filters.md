@@ -1,6 +1,6 @@
 # Story 2.4: Era & Genre Filters
 
-## Status: ready-for-dev
+## Status: review
 
 ## Story
 
@@ -53,11 +53,11 @@ And node dimming persists on the canvas (filters stay active while panel is coll
 
 ## Tasks / Subtasks
 
-- [ ] **Task 1 — Add `era` field to `GraphNode` type**
+- [x] **Task 1 — Add `era` field to `GraphNode` type**
   - [ ] In `src/graph/types.ts`, add `era: string | null` to the `GraphNode` interface
   - [ ] In `src/graph/simulation.ts`, update `buildNodes()` to populate `era: artist.era` from the `Artist` object
 
-- [ ] **Task 2 — Implement `applyFilters()` in `src/graph/filters.ts`**
+- [x] **Task 2 — Implement `applyFilters()` in `src/graph/filters.ts`**
   - [ ] Replace no-op stub with real implementation
   - [ ] Import `d3`, `NODE_OPACITY_DIMMED` from constants, `GraphNode` from types
   - [ ] Use `d3.selectAll<SVGGElement, GraphNode>("g.node")` to access all rendered nodes

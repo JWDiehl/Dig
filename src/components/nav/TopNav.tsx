@@ -4,7 +4,7 @@
  * TopNav — 48px frosted-glass navigation bar.
  *
  * Always visible, fixed to the top of the viewport, floats over the D3 canvas.
- * Contains: ArtistSearchInput (fills available width) + FilterToggle (right-aligned).
+ * Contains: DIG wordmark, ArtistSearchInput (fills width), FilterToggle (right-aligned).
  *
  * Visual spec:
  *   Background: rgba(10,10,10,0.94) — `chrome` design token
@@ -13,11 +13,12 @@
  *   Height: 48px (h-12)
  *   z-index: 50 — floats over D3 SVG canvas
  *
- * FilterToggle is **inactive state only** in this story.
- * Story 1.13 wires up filter panel open/close and the active-dot indicator.
+ * Filter props are optional — callers that don't manage filter state
+ * (e.g. not-found pages) can omit them safely.
  */
 
 import { ArtistSearchInput } from "@/components/search/ArtistSearchInput";
+import { FilterToggle } from "@/components/filters/FilterToggle";
 import type { Artist } from "@/lib/data/types";
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -25,11 +26,22 @@ import type { Artist } from "@/lib/data/types";
 export interface TopNavProps {
   /** Called when the user selects an artist from the search dropdown. */
   onArtistSelect: (artist: Artist) => void;
+  /** Called when the filter panel toggle is clicked. Defaults to no-op. */
+  onFilterToggle?: () => void;
+  /** Whether the filter panel is currently open. Defaults to false. */
+  isFilterPanelOpen?: boolean;
+  /** Whether any filters are currently active. Defaults to false. */
+  isFilterActive?: boolean;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function TopNav({ onArtistSelect }: TopNavProps) {
+export function TopNav({
+  onArtistSelect,
+  onFilterToggle = () => {},
+  isFilterPanelOpen = false,
+  isFilterActive = false,
+}: TopNavProps) {
   return (
     <nav
       className="fixed top-0 left-0 right-0 z-50 h-12 flex items-center gap-3 px-4"
@@ -57,37 +69,18 @@ export function TopNav({ onArtistSelect }: TopNavProps) {
         aria-hidden="true"
       />
 
-      {/* Search input — flex-1 so it fills the remaining width after the toggle */}
+      {/* Search input — flex-1 so it fills the remaining width */}
       <ArtistSearchInput
         onSelect={onArtistSelect}
         className="flex-1 min-w-0"
       />
 
-      {/* Filter toggle — inactive state; Story 1.13 wires up the panel */}
-      {/* TODO Story 1.13: wire up filter panel open/close and active-dot indicator */}
-      <button
-        aria-label="Toggle filters"
-        className="flex-shrink-0 p-2 rounded text-[#555555] hover:text-[#F1F1F1] transition-colors cursor-pointer"
-        type="button"
-      >
-        {/* Inline funnel icon — no external icon library per architecture */}
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 16 16"
-          fill="none"
-          aria-hidden="true"
-          focusable="false"
-        >
-          <path
-            d="M2 3h12M4 8h8M6 13h4"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-          />
-        </svg>
-        <span className="sr-only">Toggle filters</span>
-      </button>
+      {/* Filter toggle — wired in Story 2.4 */}
+      <FilterToggle
+        isOpen={isFilterPanelOpen}
+        isActive={isFilterActive}
+        onToggle={onFilterToggle}
+      />
     </nav>
   );
 }

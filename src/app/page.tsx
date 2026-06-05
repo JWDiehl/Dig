@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Landing page — Story 1.12.
+ * Landing page — Story 1.12 / Story 2.4 (filters wired).
  *
  * On initial load (focalArtistId === null):
  *   - Shows the Beatles graph from static public/data/beatles.json
@@ -19,6 +19,7 @@ import { useArtistGraph } from "@/hooks/useArtistGraph";
 import { GraphCanvas } from "@/graph/GraphCanvas";
 import { GraphErrorBoundary } from "@/graph/GraphErrorBoundary";
 import { TopNav } from "@/components/nav/TopNav";
+import { FilterPanel } from "@/components/filters/FilterPanel";
 import { useDigStore } from "@/store";
 import { GenreLegend } from "@/components/graph/GenreLegend";
 import { NodeDetailPanel } from "@/components/graph/NodeDetailPanel";
@@ -37,10 +38,17 @@ function countByDirection(graphData: GraphData, dir: "upstream" | "downstream") 
 function GraphView() {
   const setFocalArtist = useDigStore((state) => state.setFocalArtist);
   const focalArtistId = useDigStore((state) => state.focalArtistId);
+  const filterEras = useDigStore((state) => state.filterEras);
+  const filterGenres = useDigStore((state) => state.filterGenres);
+  const setFilters = useDigStore((state) => state.setFilters);
+
   const [hoveredMbid, setHoveredMbid] = useState<string | null>(null);
+  const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
+
+  const isFilterActive = filterEras.length > 0 || filterGenres.length > 0;
 
   // Query is disabled when focalArtistId is null (enabled: !!mbid in the hook).
-  // On landing, no API call fires — milesData serves as the graph immediately.
+  // On landing, no API call fires — beatlesData serves as the graph immediately.
   const { data, isPending, error } = useArtistGraph(focalArtistId);
 
   // Static on landing; live data after any pivot or search
@@ -58,7 +66,6 @@ function GraphView() {
   }, []);
 
   // Search selection handler — called by TopNav when user picks a result.
-  // pushState keeps the URL in sync; landing page stays on / until first selection.
   const handleArtistSelect = useCallback(
     (artist: Artist) => {
       setHoveredMbid(null);
@@ -73,7 +80,6 @@ function GraphView() {
   );
 
   // Pivot handler — fired by D3 node click via GraphCanvas.onPivot.
-  // Artist slug comes from current graphData (not from search result).
   const handlePivot = useCallback(
     (mbid: string) => {
       setHoveredMbid(null);
@@ -92,7 +98,12 @@ function GraphView() {
   if (focalArtistId && isPending) {
     return (
       <>
-        <TopNav onArtistSelect={handleArtistSelect} />
+        <TopNav
+          onArtistSelect={handleArtistSelect}
+          onFilterToggle={() => setIsFilterPanelOpen((p) => !p)}
+          isFilterPanelOpen={isFilterPanelOpen}
+          isFilterActive={isFilterActive}
+        />
         <div className="flex h-full flex-col items-center justify-center gap-4">
           <span className="text-[13px] font-semibold tracking-[0.22em] text-[#F1F1F1] animate-pulse select-none">
             DIG
@@ -108,7 +119,12 @@ function GraphView() {
   if (focalArtistId && error) {
     return (
       <>
-        <TopNav onArtistSelect={handleArtistSelect} />
+        <TopNav
+          onArtistSelect={handleArtistSelect}
+          onFilterToggle={() => setIsFilterPanelOpen((p) => !p)}
+          isFilterPanelOpen={isFilterPanelOpen}
+          isFilterActive={isFilterActive}
+        />
         <div className="flex h-full flex-col items-center justify-center gap-2">
           <span className="text-[13px] text-[#555555]">
             Could not load artist graph.
@@ -123,10 +139,22 @@ function GraphView() {
 
   return (
     <>
-      <TopNav onArtistSelect={handleArtistSelect} />
-      {/* "Follow the thread." subtitle — landing page only */}
-      {!focalArtistId && (
-        <p className="fixed top-12 left-0 right-0 text-center text-[10px] tracking-[0.28em] uppercase text-[#2A2A2A] pointer-events-none z-40 select-none pt-[6px]">
+      <TopNav
+        onArtistSelect={handleArtistSelect}
+        onFilterToggle={() => setIsFilterPanelOpen((p) => !p)}
+        isFilterPanelOpen={isFilterPanelOpen}
+        isFilterActive={isFilterActive}
+      />
+      <FilterPanel
+        graphData={graphData}
+        filterEras={filterEras}
+        filterGenres={filterGenres}
+        onFiltersChange={setFilters}
+        isOpen={isFilterPanelOpen}
+      />
+      {/* "Follow the thread." subtitle — landing page only, shown below filter panel */}
+      {!focalArtistId && !isFilterPanelOpen && (
+        <p className="fixed top-12 left-0 right-0 text-center text-[10px] tracking-[0.28em] uppercase text-[#2A2A2A] pointer-events-none z-30 select-none pt-[6px]">
           Follow the thread
         </p>
       )}
@@ -141,8 +169,8 @@ function GraphView() {
       />
       <GraphCanvas
         graphData={graphData}
-        filterEras={[]}
-        filterGenres={[]}
+        filterEras={filterEras}
+        filterGenres={filterGenres}
         onPivot={handlePivot}
         onHover={handleHover}
         focalArtistName={graphData?.focalArtist.name ?? ""}
