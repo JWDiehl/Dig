@@ -54,8 +54,8 @@ And node dimming persists on the canvas (filters stay active while panel is coll
 ## Tasks / Subtasks
 
 - [x] **Task 1 — Add `era` field to `GraphNode` type**
-  - [ ] In `src/graph/types.ts`, add `era: string | null` to the `GraphNode` interface
-  - [ ] In `src/graph/simulation.ts`, update `buildNodes()` to populate `era: artist.era` from the `Artist` object
+  - [x] In `src/graph/types.ts`, add `era: string | null` to the `GraphNode` interface
+  - [x] In `src/graph/simulation.ts`, update `buildNodes()` to populate `era: artist.era` from the `Artist` object
 
 - [x] **Task 2 — Implement `applyFilters()` in `src/graph/filters.ts`**
   - [ ] Replace no-op stub with real implementation
@@ -69,7 +69,7 @@ And node dimming persists on the canvas (filters stay active while panel is coll
     - `node.direction === "focal"` → always full opacity (never dim the focal artist)
   - [ ] Export `GENRE_FAMILIES` constant mapping family key → display label (used by FilterPanel to build chips)
 
-- [ ] **Task 3 — Create `FilterChip` component**
+- [x] **Task 3 — Create `FilterChip` component**
   - [ ] Create `src/components/filters/FilterChip.tsx`
   - [ ] Props: `label: string`, `isActive: boolean`, `onToggle: () => void`
   - [ ] `role="checkbox"`, `aria-checked={isActive}`, `type="button"`
@@ -77,7 +77,7 @@ And node dimming persists on the canvas (filters stay active while panel is coll
   - [ ] Hover: `rgba(255,255,255,0.08)` background
   - [ ] Named export
 
-- [ ] **Task 4 — Create `FilterPanel` component**
+- [x] **Task 4 — Create `FilterPanel` component**
   - [ ] Create `src/components/filters/FilterPanel.tsx`
   - [ ] Props: `graphData: GraphData | null`, `filterEras: string[]`, `filterGenres: string[]`, `onFiltersChange: (eras: string[], genres: string[]) => void`, `isOpen: boolean`
   - [ ] Derive available eras from `graphData.artists`: collect unique non-null `artist.era` values that exist as keys in `ERA_EPOCH_LABELS`; sort chronologically
@@ -92,7 +92,7 @@ And node dimming persists on the canvas (filters stay active while panel is coll
   - [ ] "Clear All" button: `onFiltersChange([], [])`, only rendered when any filter is active
   - [ ] Named export
 
-- [ ] **Task 5 — Create `FilterToggle` component**
+- [x] **Task 5 — Create `FilterToggle` component**
   - [ ] Create `src/components/filters/FilterToggle.tsx`
   - [ ] Props: `isOpen: boolean`, `isActive: boolean`, `onToggle: () => void`
   - [ ] Renders the existing funnel SVG icon (copy from TopNav current implementation)
@@ -100,14 +100,14 @@ And node dimming persists on the canvas (filters stay active while panel is coll
   - [ ] Button `aria-label`: `isOpen ? "Close filters" : (isActive ? "Filters active — toggle" : "Toggle filters")`
   - [ ] Named export
 
-- [ ] **Task 6 — Update `TopNav` to wire FilterToggle**
+- [x] **Task 6 — Update `TopNav` to wire FilterToggle**
   - [ ] Add props: `onFilterToggle: () => void`, `isFilterPanelOpen: boolean`, `isFilterActive: boolean`
   - [ ] Replace the existing inline filter button with `<FilterToggle isOpen={isFilterPanelOpen} isActive={isFilterActive} onToggle={onFilterToggle} />`
   - [ ] Import `FilterToggle` from `@/components/filters/FilterToggle`
   - [ ] Update `TopNavProps` interface with the three new props
   - [ ] Update `TopNav.test.tsx` if it tests the filter button (add mock for new props)
 
-- [ ] **Task 7 — Wire filters into `page.tsx`**
+- [x] **Task 7 — Wire filters into `page.tsx`**
   - [ ] Read `filterEras` and `filterGenres` from Zustand (selector pattern)
   - [ ] Read `setFilters` from Zustand
   - [ ] Add local state: `const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false)`
@@ -125,12 +125,12 @@ And node dimming persists on the canvas (filters stay active while panel is coll
     />
     ```
 
-- [ ] **Task 8 — Wire filters into `ArtistGraphView.tsx`**
+- [x] **Task 8 — Wire filters into `ArtistGraphView.tsx`**
   - [ ] Same filter wiring as Task 7 — read from Zustand, local `isFilterPanelOpen` state
   - [ ] Pass to TopNav and FilterPanel
   - [ ] Replace hardcoded empty filter arrays in GraphCanvas
 
-- [ ] **Task 9 — Write tests**
+- [x] **Task 9 — Write tests**
   - [ ] Create `src/components/filters/FilterPanel.test.tsx`:
     - Render with graphData fixture with various eras and genres
     - Test: chips render for available eras
@@ -390,22 +390,37 @@ expect(chip).toBeInTheDocument();
 ## Dev Agent Record
 
 ### Implementation Plan
-_To be populated during implementation_
+GraphNode extended with `era` field (types.ts + simulation.ts buildNodes + expandGraphNode). filters.ts stub replaced with real D3 selectAll implementation using getGenreFamily() for family-based matching. New components: FilterChip (role=checkbox), FilterPanel (fixed top-12 z-40, max-height slide), FilterToggle (amber dot shape change). TopNav props made optional with defaults — not-found pages and existing tests unaffected. page.tsx and ArtistGraphView.tsx wired to Zustand filterEras/filterGenres.
 
 ### Debug Log
-_To be populated if issues arise_
+No issues. 183/183 tests pass on first attempt.
 
 ### Completion Notes
-_To be populated on completion_
+- types.ts: era field added to GraphNode
+- simulation.ts: buildNodes() + expandGraphNode() both populate era
+- filters.ts: full applyFilters() with d3.selectAll, GENRE_FAMILIES, getGenreFamily exported
+- FilterChip.tsx, FilterPanel.tsx, FilterToggle.tsx: new components in src/components/filters/
+- TopNav.tsx: 3 optional filter props, inline button replaced with FilterToggle
+- page.tsx + ArtistGraphView.tsx: Zustand filter state wired, FilterPanel rendered
+- FilterPanel.test.tsx: 7 tests; 183/183 total pass
 
 ---
 
 ## File List
 
-_To be populated during implementation_
+- `src/graph/types.ts` — UPDATED: era field on GraphNode
+- `src/graph/simulation.ts` — UPDATED: era in buildNodes() and expandGraphNode()
+- `src/graph/filters.ts` — UPDATED: full applyFilters() implementation
+- `src/components/filters/FilterChip.tsx` — NEW
+- `src/components/filters/FilterPanel.tsx` — NEW
+- `src/components/filters/FilterToggle.tsx` — NEW
+- `src/components/filters/FilterPanel.test.tsx` — NEW: 7 tests
+- `src/components/nav/TopNav.tsx` — UPDATED: optional filter props + FilterToggle
+- `src/app/page.tsx` — UPDATED: filter state wired, FilterPanel added
+- `src/app/artist/[slug]/ArtistGraphView.tsx` — UPDATED: same as page.tsx
 
 ---
 
 ## Change Log
 
-_To be populated during implementation_
+- Story 2.4 implemented: Era & Genre Filters — 2026-06-05
