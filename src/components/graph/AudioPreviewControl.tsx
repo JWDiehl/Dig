@@ -27,6 +27,12 @@ export interface AudioPreviewControlProps {
   previewUrl: string;
   /** MBID of the artist — used to coordinate one active preview via Zustand. */
   mbid: string;
+  /**
+   * Milliseconds before audio auto-plays after mount.
+   * Defaults to HOVER_DWELL_MS (500ms) for desktop hover panels.
+   * Pass 0 for mobile bottom sheet (sheet open = immediate play).
+   */
+  autoPlayDelay?: number;
 }
 
 // ─── Waveform bars ────────────────────────────────────────────────────────────
@@ -50,7 +56,7 @@ function WaveformBars({ isPlaying }: { isPlaying: boolean }) {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function AudioPreviewControl({ previewUrl, mbid }: AudioPreviewControlProps) {
+export function AudioPreviewControl({ previewUrl, mbid, autoPlayDelay }: AudioPreviewControlProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioPreviewId = useDigStore((s) => s.audioPreviewId);
@@ -66,7 +72,7 @@ export function AudioPreviewControl({ previewUrl, mbid }: AudioPreviewControlPro
       audio.play().catch(() => {}); // autoplay may be blocked by browser policy
       setAudioPreview(mbid);
       setIsPlaying(true);
-    }, HOVER_DWELL_MS);
+    }, autoPlayDelay ?? HOVER_DWELL_MS);
 
     return () => {
       clearTimeout(timer);
